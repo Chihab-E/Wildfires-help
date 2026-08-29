@@ -31,8 +31,8 @@ export function FilterBar({
             onClick={() => onChange(key)}
             className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
               selected
-                ? 'border-red-500/60 bg-red-500/20 text-red-200'
-                : 'border-ink-700 bg-ink-800/80 text-ink-400 active:bg-ink-700'
+                ? 'border-red-400 bg-red-50 text-red-700'
+                : 'border-line bg-surface text-muted active:bg-raised'
             }`}
           >
             {FILTER_LABEL[key]}

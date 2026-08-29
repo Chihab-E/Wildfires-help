@@ -15,9 +15,9 @@ export const SEVERITY_EMOJI: Record<Severity, string> = {
 }
 
 export const SEVERITY_COLOR: Record<Severity, string> = {
-  moderate: '#f59e0b',
-  serious: '#ef4444',
-  critical: '#a855f7',
+  moderate: '#e08700',
+  serious: '#dc2626',
+  critical: '#9333ea',
 }
 
 /** ترتيب تنازلي للخطورة — يُستخدم في الفرز. */

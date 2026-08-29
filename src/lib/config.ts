@@ -12,10 +12,11 @@ function str(value: unknown): string {
 export const config = {
   /**
    * نقطة نهاية تُعيد الحرائق (JSON).
-   * فارغة => بيانات تجريبية.
+   * الافتراضي `/api/fires` — دالة الخادم المرفقة التي تجلب من NASA FIRMS.
+   * اضبطها على `off` لإجبار البيانات التجريبية، أو على عنوان آخر لمصدر بديل.
    * انظر src/lib/api.ts للصيغ المدعومة (GeoJSON أو مصفوفة).
    */
-  firesApiUrl: str(env.VITE_FIRES_API_URL),
+  firesApiUrl: str(env.VITE_FIRES_API_URL) || '/api/fires',
 
   /** ترويسة اعتماد اختيارية للـ API أعلاه، مثل: `Bearer xxx` */
   firesApiAuth: str(env.VITE_FIRES_API_AUTH),
@@ -45,8 +46,8 @@ export const config = {
   recentHours: Number(env.VITE_RECENT_HOURS ?? 24) || 24,
 } as const
 
-/** هل هناك مصدر بيانات حقيقي مضبوط؟ */
-export const hasLiveApi = config.firesApiUrl.length > 0
+/** هل هناك مصدر بيانات حقيقي مضبوط؟ (`off` تُعطّله عمداً) */
+export const hasLiveApi = config.firesApiUrl.length > 0 && config.firesApiUrl !== 'off'
 
 /** هل هناك وجهة حقيقية لاستقبال البلاغات؟ */
 export const hasReportEndpoint = config.reportEndpoint.length > 0

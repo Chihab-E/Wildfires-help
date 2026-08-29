@@ -27,7 +27,7 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
       value: (
         <span className="block">
           {formatRelative(fire.reportedAt)}
-          <span className="mt-0.5 block text-xs font-normal text-ink-400">
+          <span className="mt-0.5 block text-xs font-normal text-muted">
             <span className="num">{formatDateTime(fire.reportedAt)}</span>
           </span>
         </span>
@@ -42,6 +42,13 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
     rows.push({ label: 'نوع المصدر', value: SOURCE_KIND_LABEL[fire.sourceKind] })
   }
 
+  if (fire.detectionCount !== undefined && fire.detectionCount > 1) {
+    rows.push({
+      label: 'نقاط حرارية',
+      value: <span className="num">{fire.detectionCount}</span>,
+    })
+  }
+
   if (fire.confidence !== undefined) {
     rows.push({
       label: 'ثقة الرصد',
@@ -52,14 +59,14 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1200] flex justify-center px-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-4">
       <section
-        className="pointer-events-auto w-full max-w-lg rounded-2xl border border-ink-700 bg-ink-900/97 p-4 shadow-2xl backdrop-blur"
+        className="pointer-events-auto w-full max-w-lg rounded-2xl border border-line bg-surface/97 p-4 shadow-2xl backdrop-blur"
         role="dialog"
         aria-modal="false"
         aria-label={`تفاصيل حريق ${fire.wilaya}`}
       >
         <header className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-bold text-white">
+            <h2 className="truncate text-lg font-bold text-strong">
               {fire.wilaya} — {fire.commune}
             </h2>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -69,31 +76,31 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
           <button
             type="button"
             onClick={onClose}
-            className="-mt-1 shrink-0 rounded-full border border-ink-700 bg-ink-800 px-3 py-1.5 text-sm text-ink-200 active:bg-ink-700"
+            className="-mt-1 shrink-0 rounded-full border border-line bg-subtle px-3 py-1.5 text-sm text-body active:bg-raised"
             aria-label="إغلاق التفاصيل"
           >
             إغلاق
           </button>
         </header>
 
-        <dl className="divide-y divide-ink-700/70 text-sm">
+        <dl className="divide-y divide-line/70 text-sm">
           {rows.map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3 py-2">
-              <dt className="shrink-0 text-ink-400">{row.label}</dt>
-              <dd className="text-end font-medium text-ink-200">{row.value}</dd>
+              <dt className="shrink-0 text-muted">{row.label}</dt>
+              <dd className="text-end font-medium text-body">{row.value}</dd>
             </div>
           ))}
         </dl>
 
         {fire.notes && (
-          <p className="mt-3 rounded-xl bg-ink-800/70 p-3 text-sm leading-relaxed text-ink-200">
+          <p className="mt-3 rounded-xl bg-subtle/70 p-3 text-sm leading-relaxed text-body">
             {fire.notes}
           </p>
         )}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <a
-            className="flex-1 rounded-xl border border-ink-700 bg-ink-800 px-3 py-2 text-center text-sm font-medium text-ink-200 active:bg-ink-700"
+            className="flex-1 rounded-xl border border-line bg-subtle px-3 py-2 text-center text-sm font-medium text-body active:bg-raised"
             href={`https://www.openstreetmap.org/?mlat=${fire.lat}&mlon=${fire.lon}#map=13/${fire.lat}/${fire.lon}`}
             target="_blank"
             rel="noreferrer noopener"
@@ -102,7 +109,7 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
           </a>
           {fire.sourceUrl && (
             <a
-              className="flex-1 rounded-xl border border-ink-700 bg-ink-800 px-3 py-2 text-center text-sm font-medium text-ink-200 active:bg-ink-700"
+              className="flex-1 rounded-xl border border-line bg-subtle px-3 py-2 text-center text-sm font-medium text-body active:bg-raised"
               href={fire.sourceUrl}
               target="_blank"
               rel="noreferrer noopener"
@@ -112,7 +119,7 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
           )}
         </div>
 
-        <p className="num mt-3 text-center text-xs text-ink-400">
+        <p className="num mt-3 text-center text-xs text-muted">
           {fire.lat.toFixed(4)}, {fire.lon.toFixed(4)}
         </p>
       </section>

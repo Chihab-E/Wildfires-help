@@ -36,23 +36,24 @@ export function HomePage({
   return (
     <div className="mx-auto max-w-lg px-3 pb-4">
       {payload?.isDemo && (
-        <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-400/35 bg-amber-400/10 p-3 text-sm text-amber-200">
+        <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           <span aria-hidden="true">⚠️</span>
           <p className="leading-relaxed">
-            <strong className="font-bold">بيانات تجريبية.</strong> لم يُضبط مصدر بيانات مباشر، لذلك
-            المعروض أمثلة توضيحية فقط <span className="font-bold">وليست حرائق حقيقية</span>. للحالات
-            الطارئة اتصل بالحماية المدنية على <span className="num font-bold">14</span>.
+            <strong className="font-bold">بيانات تجريبية.</strong>{' '}
+            {payload.notice ?? 'لا يوجد مصدر بيانات مباشر.'} المعروض أمثلة توضيحية{' '}
+            <span className="font-bold">وليست حرائق حقيقية</span>. للحالات الطارئة اتصل بالحماية
+            المدنية على <span className="num font-bold">14</span>.
           </p>
         </div>
       )}
 
       {error && (
-        <div className="mb-3 flex items-center justify-between gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-2xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">
           <span>{error}</span>
           <button
             type="button"
             onClick={onRefresh}
-            className="shrink-0 rounded-lg border border-red-400/40 px-2.5 py-1 font-bold"
+            className="shrink-0 rounded-lg border border-red-300 px-2.5 py-1 font-bold"
           >
             إعادة المحاولة
           </button>
@@ -64,7 +65,7 @@ export function HomePage({
       <button
         type="button"
         onClick={() => navigateTo('report')}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-red-900/40 active:bg-red-700"
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/25 active:bg-red-700"
       >
         <span aria-hidden="true">🔥</span>
         أبلغ عن حريق
@@ -72,11 +73,11 @@ export function HomePage({
 
       <section className="mt-4" aria-label="خريطة الحرائق">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-base font-bold text-white">خريطة الجزائر</h2>
+          <h2 className="text-base font-bold text-strong">خريطة الجزائر</h2>
           <button
             type="button"
             onClick={() => navigateTo('map')}
-            className="rounded-lg border border-ink-700 bg-ink-800 px-2.5 py-1 text-xs font-bold text-ink-200 active:bg-ink-700"
+            className="rounded-lg border border-line bg-subtle px-2.5 py-1 text-xs font-bold text-body active:bg-raised"
           >
             عرض كامل
           </button>
@@ -85,20 +86,20 @@ export function HomePage({
           fires={fires}
           selectedId={selected?.id ?? null}
           onSelect={setSelected}
-          className="h-[58vh] min-h-72 w-full overflow-hidden rounded-2xl border border-ink-700"
+          className="h-[58vh] min-h-72 w-full overflow-hidden rounded-2xl border border-line"
         />
         <MapLegend />
       </section>
 
       <section className="mt-5" aria-label="الولايات المتضررة">
-        <h2 className="mb-2 text-base font-bold text-white">
+        <h2 className="mb-2 text-base font-bold text-strong">
           📍 الولايات المتضررة
-          <span className="ms-2 text-sm font-normal text-ink-400">
+          <span className="ms-2 text-sm font-normal text-muted">
             {formatWilayaCount(wilayaGroups.length)}
           </span>
         </h2>
         {wilayaGroups.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-ink-700 p-5 text-center text-sm text-ink-400">
+          <p className="rounded-2xl border border-dashed border-line p-5 text-center text-sm text-muted">
             {loading ? 'جارٍ التحميل…' : 'لا توجد حرائق نشطة مسجّلة حالياً.'}
           </p>
         ) : (
@@ -108,10 +109,10 @@ export function HomePage({
                 <button
                   type="button"
                   onClick={() => setSelected(group.worst)}
-                  className="w-full rounded-xl border border-ink-700 bg-ink-800/60 p-2.5 text-start active:bg-ink-700"
+                  className="w-full rounded-xl border border-line bg-subtle/60 p-2.5 text-start active:bg-raised"
                 >
-                  <p className="truncate font-bold text-white">{group.wilaya}</p>
-                  <p className="mt-0.5 text-xs text-ink-400">
+                  <p className="truncate font-bold text-strong">{group.wilaya}</p>
+                  <p className="mt-0.5 text-xs text-muted">
                     نشطة: <span className="num">{group.active}</span>
                   </p>
                 </button>
@@ -122,7 +123,7 @@ export function HomePage({
       </section>
 
       <section className="mt-5" aria-label="أحدث الحرائق النشطة">
-        <h2 className="mb-2 text-base font-bold text-white">🔥 الحرائق النشطة</h2>
+        <h2 className="mb-2 text-base font-bold text-strong">🔥 الحرائق النشطة</h2>
         <FireList
           fires={activeFires.slice(0, 8)}
           onSelect={setSelected}
@@ -132,14 +133,14 @@ export function HomePage({
           <button
             type="button"
             onClick={() => navigateTo('map')}
-            className="mt-2.5 w-full rounded-xl border border-ink-700 bg-ink-800/60 py-2.5 text-sm font-bold text-ink-200 active:bg-ink-700"
+            className="mt-2.5 w-full rounded-xl border border-line bg-subtle/60 py-2.5 text-sm font-bold text-body active:bg-raised"
           >
             عرض الكل على الخريطة
           </button>
         )}
       </section>
 
-      <footer className="mt-6 space-y-1 text-center text-xs text-ink-400">
+      <footer className="mt-6 space-y-1 text-center text-xs text-muted">
         <p>
           المصدر: {payload?.sourceLabel ?? '—'} {payload?.isDemo && <DemoBadge className="ms-1" />}
         </p>
@@ -151,7 +152,7 @@ export function HomePage({
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="mt-1 rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 font-bold text-ink-200 disabled:opacity-50"
+          className="mt-1 rounded-lg border border-line bg-subtle px-3 py-1.5 font-bold text-body disabled:opacity-50"
         >
           {loading ? 'جارٍ التحديث…' : 'تحديث البيانات'}
         </button>
@@ -164,13 +165,13 @@ export function HomePage({
 
 export function MapLegend() {
   return (
-    <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-400">
+    <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
       <li>🟠 متوسط</li>
       <li>🔴 خطير</li>
       <li>🟣 حرج</li>
       <li className="flex items-center gap-1">
         <span
-          className="inline-block size-3 rounded-full border-2 border-dashed border-white/60"
+          className="inline-block size-3 rounded-full border-2 border-dashed border-muted"
           aria-hidden="true"
         />
         حدود متقطّعة = رصد فضائي غير مؤكد

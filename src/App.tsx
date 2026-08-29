@@ -36,16 +36,16 @@ export default function App() {
   }, [])
 
   return (
-    <div className="min-h-dvh bg-ink-950 pb-16">
-      <header className="sticky top-0 z-[1250] border-b border-ink-700 bg-ink-900/95 backdrop-blur">
+    <div className="min-h-dvh bg-canvas pb-16">
+      <header className="sticky top-0 z-[1250] border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <span className="text-xl leading-none" aria-hidden="true">
               🔥
             </span>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-bold text-white">{TITLES[route]}</h1>
-              <p className="truncate text-[11px] text-ink-400">
+              <h1 className="truncate text-base font-bold text-strong">{TITLES[route]}</h1>
+              <p className="truncate text-[11px] text-muted">
                 {loading && !data
                   ? 'جارٍ تحميل البيانات…'
                   : data
@@ -59,7 +59,7 @@ export default function App() {
             type="button"
             onClick={refresh}
             disabled={loading}
-            className="shrink-0 rounded-lg border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs font-bold text-ink-200 active:bg-ink-700 disabled:opacity-50"
+            className="shrink-0 rounded-lg border border-line bg-subtle px-2.5 py-1.5 text-xs font-bold text-body active:bg-raised disabled:opacity-50"
             aria-label="تحديث البيانات"
           >
             {loading ? '…' : '⟳ تحديث'}

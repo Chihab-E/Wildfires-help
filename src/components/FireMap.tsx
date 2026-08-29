@@ -147,7 +147,7 @@ export function FireMap({
 
     const icon = L.divIcon({
       className: '',
-      html: `<div class="fire-marker" style="width:30px;height:30px;background:#22d3ee">📍</div>`,
+      html: `<div class="fire-marker" style="width:30px;height:30px;background:#0284c7">📍</div>`,
       iconSize: [30, 30],
       iconAnchor: [15, 15],
     })

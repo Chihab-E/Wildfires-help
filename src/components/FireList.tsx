@@ -7,14 +7,14 @@ export function FireListItem({ fire, onSelect }: { fire: Fire; onSelect?: (fire:
     <button
       type="button"
       onClick={() => onSelect?.(fire)}
-      className="w-full rounded-2xl border border-ink-700 bg-ink-800/60 p-3 text-start transition-colors active:bg-ink-700"
+      className="w-full rounded-2xl border border-line bg-subtle/60 p-3 text-start transition-colors active:bg-raised"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate font-bold text-white">
-            {fire.wilaya} <span className="text-ink-400">—</span> {fire.commune}
+          <p className="truncate font-bold text-strong">
+            {fire.wilaya} <span className="text-muted">—</span> {fire.commune}
           </p>
-          <p className="mt-0.5 text-xs text-ink-400">{formatRelative(fire.reportedAt)}</p>
+          <p className="mt-0.5 text-xs text-muted">{formatRelative(fire.reportedAt)}</p>
         </div>
         <SeverityBadge severity={fire.severity} />
       </div>
@@ -37,7 +37,7 @@ export function FireList({
 }) {
   if (fires.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-ink-700 p-6 text-center text-sm text-ink-400">
+      <p className="rounded-2xl border border-dashed border-line p-6 text-center text-sm text-muted">
         {emptyText}
       </p>
     )

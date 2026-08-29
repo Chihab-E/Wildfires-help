@@ -131,7 +131,7 @@ export function ReportPage() {
 
   return (
     <div className="mx-auto max-w-lg px-3 pb-6">
-      <div className="mb-3 rounded-2xl border border-red-500/35 bg-red-500/10 p-3 text-sm leading-relaxed text-red-100">
+      <div className="mb-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm leading-relaxed text-red-900">
         <strong className="font-bold">في حالة خطر مباشر، اتصل أولاً:</strong> الحماية المدنية{' '}
         <a className="num font-bold underline" href="tel:14">
           14
@@ -147,7 +147,7 @@ export function ReportPage() {
               type="button"
               onClick={useMyLocation}
               disabled={locating}
-              className="flex-1 rounded-xl border border-ink-700 bg-ink-800 px-3 py-2.5 text-sm font-bold text-ink-200 active:bg-ink-700 disabled:opacity-60"
+              className="flex-1 rounded-xl border border-line bg-subtle px-3 py-2.5 text-sm font-bold text-body active:bg-raised disabled:opacity-60"
             >
               {locating ? 'جارٍ التحديد…' : '📡 استخدام موقعي'}
             </button>
@@ -155,25 +155,25 @@ export function ReportPage() {
               <button
                 type="button"
                 onClick={() => setPoint(null)}
-                className="rounded-xl border border-ink-700 bg-ink-800 px-3 py-2.5 text-sm text-ink-400 active:bg-ink-700"
+                className="rounded-xl border border-line bg-subtle px-3 py-2.5 text-sm text-muted active:bg-raised"
               >
                 مسح
               </button>
             )}
           </div>
 
-          <p className="mt-2 text-xs text-ink-400">أو انقر على الخريطة لتحديد النقطة بدقة.</p>
+          <p className="mt-2 text-xs text-muted">أو انقر على الخريطة لتحديد النقطة بدقة.</p>
 
           <FireMap
             fires={[]}
             pickMode
             pickedPoint={point}
             onPick={setLocation}
-            className="mt-2 h-64 w-full overflow-hidden rounded-2xl border border-ink-700"
+            className="mt-2 h-64 w-full overflow-hidden rounded-2xl border border-line"
           />
 
           {point && (
-            <p className="num mt-2 text-center text-xs text-ink-400">
+            <p className="num mt-2 text-center text-xs text-muted">
               {point.lat.toFixed(5)}, {point.lon.toFixed(5)}
             </p>
           )}
@@ -190,7 +190,7 @@ export function ReportPage() {
               wilayaTouched.current = true
               setWilayaCode(event.target.value)
             }}
-            className="w-full rounded-xl border border-ink-700 bg-ink-800 px-3 py-3 text-base text-white outline-none focus:border-red-500/60"
+            className="w-full rounded-xl border border-line bg-surface px-3 py-3 text-base text-strong outline-none focus:border-red-500"
           >
             <option value="" disabled>
               اختر الولاية
@@ -212,7 +212,7 @@ export function ReportPage() {
             onChange={(event) => setCommune(event.target.value)}
             placeholder="مثال: أزفون"
             maxLength={80}
-            className="w-full rounded-xl border border-ink-700 bg-ink-800 px-3 py-3 text-base text-white placeholder:text-ink-400/70 outline-none focus:border-red-500/60"
+            className="w-full rounded-xl border border-line bg-surface px-3 py-3 text-base text-strong placeholder:text-muted outline-none focus:border-red-500"
           />
         </Field>
 
@@ -227,8 +227,8 @@ export function ReportPage() {
                 aria-pressed={severity === option}
                 className={`rounded-xl border px-2 py-3 text-sm font-bold ${
                   severity === option
-                    ? 'border-red-500/60 bg-red-500/20 text-white'
-                    : 'border-ink-700 bg-ink-800 text-ink-400'
+                    ? 'border-red-400 bg-red-50 text-red-700'
+                    : 'border-line bg-subtle text-muted'
                 }`}
               >
                 <span className="block text-lg leading-none" aria-hidden="true">
@@ -249,9 +249,9 @@ export function ReportPage() {
             rows={4}
             maxLength={1000}
             placeholder="ما الذي تراه؟ اتجاه الرياح، قرب المنازل، الطريق الأقرب…"
-            className="w-full resize-y rounded-xl border border-ink-700 bg-ink-800 px-3 py-3 text-base text-white placeholder:text-ink-400/70 outline-none focus:border-red-500/60"
+            className="w-full resize-y rounded-xl border border-line bg-surface px-3 py-3 text-base text-strong placeholder:text-muted outline-none focus:border-red-500"
           />
-          <p className="mt-1 text-end text-xs text-ink-400">
+          <p className="mt-1 text-end text-xs text-muted">
             <span className="num">{description.length}/1000</span>
           </p>
         </Field>
@@ -271,7 +271,7 @@ export function ReportPage() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border border-ink-700 bg-ink-800 px-3 py-3 text-sm font-bold text-ink-200 active:bg-ink-700"
+            className="w-full rounded-xl border border-line bg-subtle px-3 py-3 text-sm font-bold text-body active:bg-raised"
           >
             📷 {photo ? 'تغيير الصورة' : 'إضافة صورة'}
           </button>
@@ -280,12 +280,12 @@ export function ReportPage() {
               <img
                 src={photo}
                 alt="معاينة الصورة المرفقة"
-                className="max-h-56 w-full rounded-xl border border-ink-700 object-cover"
+                className="max-h-56 w-full rounded-xl border border-line object-cover"
               />
               <button
                 type="button"
                 onClick={clearPhoto}
-                className="mt-2 w-full rounded-xl border border-ink-700 bg-ink-800 py-2 text-sm text-ink-400 active:bg-ink-700"
+                className="mt-2 w-full rounded-xl border border-line bg-subtle py-2 text-sm text-muted active:bg-raised"
               >
                 إزالة الصورة
               </button>
@@ -299,13 +299,13 @@ export function ReportPage() {
         <button
           type="submit"
           disabled={sending}
-          className="w-full rounded-2xl bg-red-600 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-red-900/40 active:bg-red-700 disabled:opacity-60"
+          className="w-full rounded-2xl bg-red-600 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/25 active:bg-red-700 disabled:opacity-60"
         >
           {sending ? 'جارٍ الإرسال…' : '🔥 إرسال البلاغ'}
         </button>
 
         {!hasReportEndpoint && (
-          <p className="rounded-xl border border-amber-400/35 bg-amber-400/10 p-3 text-xs leading-relaxed text-amber-200">
+          <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
             لم تُضبط وجهة استقبال البلاغات (<span className="num">VITE_REPORT_ENDPOINT</span>)، لذلك
             سيُحفظ البلاغ على هذا الجهاز فقط ولن يصل إلى أي جهة.
           </p>
@@ -329,17 +329,17 @@ function SubmissionResult({
       <p className="text-5xl" aria-hidden="true">
         {sent ? '✅' : '📥'}
       </p>
-      <h2 className="mt-3 text-xl font-bold text-white">
+      <h2 className="mt-3 text-xl font-bold text-strong">
         {sent ? 'تم إرسال البلاغ' : 'حُفظ البلاغ على جهازك'}
       </h2>
-      <p className="mt-2 text-sm leading-relaxed text-ink-400">
+      <p className="mt-2 text-sm leading-relaxed text-muted">
         {sent
           ? 'شكراً لك. البلاغات تُراجع قبل اعتمادها كحريق مؤكد.'
           : submission.reason === 'offline'
             ? 'تعذّر الاتصال بالخادم. سيُعاد إرسال البلاغ تلقائياً عند عودة الاتصال.'
             : 'لا توجد وجهة استقبال مضبوطة حالياً، لذلك البلاغ محفوظ محلياً فقط.'}
       </p>
-      <p className="mt-4 rounded-2xl border border-red-500/35 bg-red-500/10 p-3 text-sm text-red-100">
+      <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
         إن كان الخطر مباشراً فاتصل بالحماية المدنية على{' '}
         <a className="num font-bold underline" href="tel:14">
           14
@@ -350,7 +350,7 @@ function SubmissionResult({
         <button
           type="button"
           onClick={onReset}
-          className="flex-1 rounded-xl border border-ink-700 bg-ink-800 py-3 font-bold text-ink-200 active:bg-ink-700"
+          className="flex-1 rounded-xl border border-line bg-subtle py-3 font-bold text-body active:bg-raised"
         >
           بلاغ آخر
         </button>
@@ -391,11 +391,11 @@ function Field({
   return (
     <div>
       {htmlFor ? (
-        <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-bold text-ink-200">
+        <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-bold text-body">
           {title}
         </label>
       ) : (
-        <p className="mb-1.5 block text-sm font-bold text-ink-200">{title}</p>
+        <p className="mb-1.5 block text-sm font-bold text-body">{title}</p>
       )}
       {children}
     </div>
@@ -403,5 +403,5 @@ function Field({
 }
 
 function ErrorText({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1.5 text-sm font-medium text-red-300">{children}</p>
+  return <p className="mt-1.5 text-sm font-medium text-red-700">{children}</p>
 }

@@ -16,7 +16,7 @@ export function BottomNav({
 }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-[1300] border-t border-ink-700 bg-ink-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-[1300] border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
       aria-label="التنقّل الرئيسي"
     >
       <ul className="mx-auto flex max-w-lg">
@@ -33,10 +33,10 @@ export function BottomNav({
                   active
                     ? isReport
                       ? 'text-red-400'
-                      : 'text-white'
+                      : 'text-strong'
                     : isReport
                       ? 'text-red-400/80'
-                      : 'text-ink-400'
+                      : 'text-muted'
                 }`}
               >
                 <span className="text-xl leading-none" aria-hidden="true">

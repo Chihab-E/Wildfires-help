@@ -46,7 +46,7 @@ export function MapPage({
       />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1100] p-2.5">
-        <div className="pointer-events-auto mx-auto max-w-lg rounded-2xl border border-ink-700 bg-ink-900/92 p-2 backdrop-blur">
+        <div className="pointer-events-auto mx-auto max-w-lg rounded-2xl border border-line bg-surface/92 p-2 backdrop-blur">
           <FilterBar value={filter} counts={counts} onChange={setFilter} />
         </div>
       </div>
@@ -59,7 +59,7 @@ export function MapPage({
             setListOpen((open) => !open)
             setSelected(null)
           }}
-          className="pointer-events-auto mx-auto flex w-full max-w-lg items-center justify-between rounded-2xl border border-ink-700 bg-ink-900/92 px-4 py-2.5 text-sm font-bold text-ink-200 backdrop-blur active:bg-ink-800"
+          className="pointer-events-auto mx-auto flex w-full max-w-lg items-center justify-between rounded-2xl border border-line bg-surface/92 px-4 py-2.5 text-sm font-bold text-body backdrop-blur active:bg-subtle"
           aria-expanded={listOpen}
         >
           <span>
@@ -72,7 +72,7 @@ export function MapPage({
       </div>
 
       {listOpen && (
-        <div className="absolute inset-x-0 bottom-0 z-[1150] max-h-[60%] overflow-y-auto rounded-t-2xl border-t border-ink-700 bg-ink-900/97 p-3 pb-20 backdrop-blur">
+        <div className="absolute inset-x-0 bottom-0 z-[1150] max-h-[60%] overflow-y-auto rounded-t-2xl border-t border-line bg-surface/97 p-3 pb-20 backdrop-blur">
           <FireList
             fires={sorted}
             onSelect={(fire) => {

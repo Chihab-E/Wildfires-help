@@ -15,19 +15,19 @@ function Card({
   tone: 'red' | 'amber' | 'slate'
 }) {
   const tones = {
-    red: 'border-red-500/35 bg-red-500/10',
-    amber: 'border-amber-500/35 bg-amber-500/10',
-    slate: 'border-ink-700 bg-ink-800/70',
+    red: 'border-red-200 bg-red-50',
+    amber: 'border-amber-200 bg-amber-50',
+    slate: 'border-line bg-surface',
   } as const
 
   return (
     <div className={`rounded-2xl border p-3 ${tones[tone]}`}>
-      <div className="flex items-center gap-1.5 text-xs font-bold text-ink-400">
+      <div className="flex items-center gap-1.5 text-xs font-bold text-muted">
         <span aria-hidden="true">{icon}</span>
         <span>{label}</span>
       </div>
-      <p className="mt-1.5 truncate text-2xl font-bold text-white">{value}</p>
-      {hint && <p className="mt-0.5 truncate text-xs text-ink-400">{hint}</p>}
+      <p className="mt-1.5 truncate text-2xl font-bold text-strong">{value}</p>
+      {hint && <p className="mt-0.5 truncate text-xs text-muted">{hint}</p>}
     </div>
   )
 }

@@ -39,6 +39,8 @@ export interface Fire {
   verified: boolean
   /** ثقة الرصد الفضائي 0..100 (إن توفرت) */
   confidence?: number
+  /** عدد النقاط الحرارية التي اندمجت في هذا التجمّع (للرصد الفضائي) */
+  detectionCount?: number
   notes?: string
 }
 
@@ -69,4 +71,6 @@ export interface FiresPayload {
   isDemo: boolean
   /** وصف المصدر المستخدم */
   sourceLabel: string
+  /** سبب اللجوء للبيانات التجريبية، إن وُجد */
+  notice?: string
 }

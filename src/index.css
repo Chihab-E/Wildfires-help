@@ -1,27 +1,29 @@
 @import 'tailwindcss';
+@import './fonts.css';
 @import 'leaflet/dist/leaflet.css';
 @import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 @theme {
-  /* خطوط النظام فقط: لا تحميل خطوط خارجية حفاظاً على السرعة */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', 'Noto Kufi Arabic', 'Noto Naskh Arabic',
-    'Geeza Pro', 'Tahoma', 'Arial', sans-serif;
+  --font-sans: 'IBM Plex Sans Arabic', 'Segoe UI', 'Noto Naskh Arabic', system-ui, sans-serif;
 
-  --color-ink-950: #07090d;
-  --color-ink-900: #0b0f14;
-  --color-ink-800: #121821;
-  --color-ink-700: #1b2431;
-  --color-ink-600: #26313f;
-  --color-ink-400: #7c8aa0;
-  --color-ink-200: #c6cfdc;
+  /* ===== الأسطح والنصوص (واجهة فاتحة) ===== */
+  --color-canvas: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-subtle: #f3f5f9;
+  --color-raised: #e8edf4;
+  --color-line: #e2e7ef;
+  --color-strong: #0f172a;
+  --color-body: #35415a;
+  --color-muted: #6b7789;
 
-  --color-sev-moderate: #f59e0b;
-  --color-sev-serious: #ef4444;
-  --color-sev-critical: #a855f7;
+  /* ===== الشدة ===== */
+  --color-sev-moderate: #e08700;
+  --color-sev-serious: #dc2626;
+  --color-sev-critical: #9333ea;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
@@ -32,11 +34,12 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-ink-950);
-  color: var(--color-ink-200);
+  background: var(--color-canvas);
+  color: var(--color-body);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 /*
@@ -50,31 +53,36 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ===== Leaflet: تكييف مع الواجهة الداكنة و RTL ===== */
+/* ===== Leaflet: تكييف مع الواجهة الفاتحة و RTL ===== */
 .leaflet-container {
-  background: #0e1319;
+  background: #e8edf4;
   font-family: inherit;
   direction: ltr;
 }
 
 .leaflet-control-attribution {
-  background: rgb(11 15 20 / 0.8) !important;
-  color: #7c8aa0 !important;
+  background: rgb(255 255 255 / 0.85) !important;
+  color: #6b7789 !important;
   font-size: 10px !important;
 }
 
 .leaflet-control-attribution a {
-  color: #9db1cc !important;
+  color: #47536b !important;
+}
+
+.leaflet-bar {
+  border: none !important;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.16) !important;
 }
 
 .leaflet-bar a {
-  background: #121821 !important;
-  color: #e6ecf5 !important;
-  border-color: #26313f !important;
+  background: #ffffff !important;
+  color: #35415a !important;
+  border-color: #e2e7ef !important;
 }
 
 .leaflet-bar a:hover {
-  background: #1b2431 !important;
+  background: #f3f5f9 !important;
 }
 
 .leaflet-touch .leaflet-bar a {
@@ -88,28 +96,30 @@ body {
   display: grid;
   place-items: center;
   border-radius: 9999px;
-  border: 2px solid rgb(255 255 255 / 0.85);
-  box-shadow: 0 0 0 3px rgb(0 0 0 / 0.35);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.35);
   font-size: 13px;
   font-weight: 700;
-  color: #0b0f14;
+  color: #ffffff;
 }
 
+/* الحدود المتقطّعة تعني: رصد فضائي آلي غير مؤكد ميدانياً */
 .fire-marker--satellite {
   border-style: dashed;
-  border-color: rgb(255 255 255 / 0.6);
+  border-color: #ffffff;
+  opacity: 0.92;
 }
 
 .fire-cluster {
   display: grid;
   place-items: center;
   border-radius: 9999px;
-  background: rgb(239 68 68 / 0.25);
-  border: 2px solid rgb(239 68 68 / 0.9);
-  color: #fff;
+  background: rgb(220 38 38 / 0.92);
+  border: 2px solid #ffffff;
+  color: #ffffff;
   font-weight: 700;
   font-size: 13px;
-  backdrop-filter: blur(2px);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.3);
 }
 
 /*
@@ -127,5 +137,5 @@ body {
 /* شريط تمرير رفيع */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #26313f transparent;
+  scrollbar-color: #cbd3e0 transparent;
 }

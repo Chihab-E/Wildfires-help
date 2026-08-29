@@ -18,9 +18,9 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 }
 
 const STATUS_STYLE: Record<FireStatus, string> = {
-  active: 'text-red-300 bg-red-500/15 border-red-500/40',
-  contained: 'text-amber-200 bg-amber-500/15 border-amber-500/40',
-  extinguished: 'text-ink-400 bg-white/5 border-white/10',
+  active: 'text-red-700 bg-red-50 border-red-200',
+  contained: 'text-amber-800 bg-amber-50 border-amber-200',
+  extinguished: 'text-muted bg-subtle border-line',
 }
 
 export function StatusBadge({ status }: { status: FireStatus }) {
@@ -43,7 +43,7 @@ export function StatusBadge({ status }: { status: FireStatus }) {
 export function VerificationBadge({ fire }: { fire: Fire }) {
   if (fire.verified) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-300">
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
         ✓ مؤكد ميدانياً
       </span>
     )
@@ -51,14 +51,14 @@ export function VerificationBadge({ fire }: { fire: Fire }) {
 
   if (fire.sourceKind === 'satellite') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/40 bg-sky-500/15 px-2 py-0.5 text-xs font-bold text-sky-300">
+      <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-bold text-sky-700">
         🛰️ رصد فضائي — غير مؤكد
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs font-bold text-ink-400">
+    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-subtle px-2 py-0.5 text-xs font-bold text-muted">
       ⚠️ بلاغ غير مؤكد
     </span>
   )
@@ -67,7 +67,7 @@ export function VerificationBadge({ fire }: { fire: Fire }) {
 export function DemoBadge({ className = '' }: { className?: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/15 px-2 py-0.5 text-xs font-bold text-amber-300 ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 ${className}`}
     >
       بيانات تجريبية
     </span>

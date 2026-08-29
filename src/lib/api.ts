@@ -157,6 +157,7 @@ export function normalizeFire(input: unknown): Fire | null {
     sourceUrl: toText(pick(raw, ['sourceUrl', 'source_url', 'url', 'link'])) || undefined,
     verified,
     confidence,
+    detectionCount: toNumber(pick(raw, ['detectionCount', 'detection_count'])),
     notes: toText(pick(raw, ['notes', 'description', 'details', 'وصف'])) || undefined,
   }
 }
@@ -177,15 +178,27 @@ function extractRecords(payload: unknown): unknown[] {
 
 const REQUEST_TIMEOUT_MS = 15_000
 
-/** يجلب الحرائق من الـ API المضبوط، وإلا يُعيد البيانات التجريبية. */
+/** حزمة البيانات التجريبية مع سبب اللجوء إليها. */
+function demoPayload(notice?: string): FiresPayload {
+  return {
+    fires: buildDemoFires(),
+    updatedAt: new Date().toISOString(),
+    isDemo: true,
+    sourceLabel: 'بيانات تجريبية',
+    notice,
+  }
+}
+
+/**
+ * يجلب الحرائق من الـ API المضبوط.
+ *
+ * التطبيق قد يُفتح في ظرف طارئ، فلا نتركه فارغاً عند فشل المصدر:
+ * نعود إلى البيانات التجريبية مع رسالة صريحة تشرح ما حدث،
+ * ويبقى العلم `isDemo` مرفوعاً فلا يختلط التجريبي بالحقيقي أبداً.
+ */
 export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
   if (!hasLiveApi) {
-    return {
-      fires: buildDemoFires(),
-      updatedAt: new Date().toISOString(),
-      isDemo: true,
-      sourceLabel: 'بيانات تجريبية (لا يوجد مصدر مباشر مضبوط)',
-    }
+    return demoPayload('لم يُضبط مصدر بيانات مباشر.')
   }
 
   const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
@@ -194,27 +207,39 @@ export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (config.firesApiAuth) headers.Authorization = config.firesApiAuth
 
-  const response = await fetch(config.firesApiUrl, { headers, signal: combined })
-  if (!response.ok) {
-    throw new Error(`تعذّر جلب البيانات من المصدر (رمز ${response.status})`)
+  let payload: unknown
+  try {
+    const response = await fetch(config.firesApiUrl, { headers, signal: combined })
+    payload = await response.json().catch(() => null)
+
+    if (!response.ok) {
+      const message =
+        (typeof payload === 'object' &&
+          payload !== null &&
+          toText((payload as Record<string, unknown>).message)) ||
+        `رمز ${response.status}`
+      return demoPayload(`تعذّر جلب البيانات المباشرة (${message}).`)
+    }
+  } catch (error) {
+    if (signal?.aborted) throw error
+    return demoPayload('تعذّر الاتصال بمصدر البيانات المباشر.')
   }
 
-  const payload: unknown = await response.json()
   const fires = extractRecords(payload)
     .map(normalizeFire)
     .filter((fire): fire is Fire => fire !== null)
 
-  const updatedAt =
-    (typeof payload === 'object' &&
-      payload !== null &&
-      toIso((payload as Record<string, unknown>).updatedAt)) ||
-    new Date().toISOString()
+  const record = typeof payload === 'object' && payload !== null
+    ? (payload as Record<string, unknown>)
+    : {}
+
+  const sourceName = toText(record.source)
 
   return {
     fires,
-    updatedAt,
+    updatedAt: toIso(record.updatedAt) ?? new Date().toISOString(),
     isDemo: false,
-    sourceLabel: 'مصدر مباشر',
+    sourceLabel: sourceName || 'مصدر مباشر',
   }
 }
 
