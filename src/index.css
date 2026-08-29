@@ -1,0 +1,131 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+
+@theme {
+  /* خطوط النظام فقط: لا تحميل خطوط خارجية حفاظاً على السرعة */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', 'Noto Kufi Arabic', 'Noto Naskh Arabic',
+    'Geeza Pro', 'Tahoma', 'Arial', sans-serif;
+
+  --color-ink-950: #07090d;
+  --color-ink-900: #0b0f14;
+  --color-ink-800: #121821;
+  --color-ink-700: #1b2431;
+  --color-ink-600: #26313f;
+  --color-ink-400: #7c8aa0;
+  --color-ink-200: #c6cfdc;
+
+  --color-sev-moderate: #f59e0b;
+  --color-sev-serious: #ef4444;
+  --color-sev-critical: #a855f7;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: var(--color-ink-200);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/*
+ * أرقام لاتينية داخل نص عربي تبقى مقروءة من اليسار لليمين.
+ * تنبيه: `direction: ltr` هنا يقلب معنى الهوامش المنطقية (ms-* / me-*)
+ * داخل هذا العنصر، لذا توضع الهوامش دائماً على عنصر أب لا على ‎.num‎.
+ */
+.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Leaflet: تكييف مع الواجهة الداكنة و RTL ===== */
+.leaflet-container {
+  background: #0e1319;
+  font-family: inherit;
+  direction: ltr;
+}
+
+.leaflet-control-attribution {
+  background: rgb(11 15 20 / 0.8) !important;
+  color: #7c8aa0 !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #9db1cc !important;
+}
+
+.leaflet-bar a {
+  background: #121821 !important;
+  color: #e6ecf5 !important;
+  border-color: #26313f !important;
+}
+
+.leaflet-bar a:hover {
+  background: #1b2431 !important;
+}
+
+.leaflet-touch .leaflet-bar a {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+/* علامة الحريق */
+.fire-marker {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 0.35);
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b0f14;
+}
+
+.fire-marker--satellite {
+  border-style: dashed;
+  border-color: rgb(255 255 255 / 0.6);
+}
+
+.fire-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  background: rgb(239 68 68 / 0.25);
+  border: 2px solid rgb(239 68 68 / 0.9);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  backdrop-filter: blur(2px);
+}
+
+/*
+ * صفحة الخريطة تضع شريط المرشّحات فوق الخريطة وزر القائمة أسفلها،
+ * فنُزيح أدوات Leaflet حتى لا تختفي تحتهما.
+ */
+.map-inset .leaflet-top.leaflet-left {
+  margin-top: 3.75rem;
+}
+
+.map-inset .leaflet-bottom.leaflet-right {
+  margin-bottom: 3.25rem;
+}
+
+/* شريط تمرير رفيع */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #26313f transparent;
+}

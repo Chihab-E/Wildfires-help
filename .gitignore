@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.vercel
+.DS_Store
+
+# متغيرات البيئة المحلية
+.env
+.env.local
+.env.*.local
+
+*.log
+npm-debug.log*
+.vite
+
+# مخرجات مترجم TypeScript الإضافية
+*.tsbuildinfo
