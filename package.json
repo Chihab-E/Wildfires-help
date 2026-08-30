@@ -11,7 +11,8 @@
     "typecheck": "tsc -b --noEmit",
     "icons": "node scripts/generate-icons.mjs",
     "fonts": "node scripts/fetch-fonts.mjs",
-    "test:firms": "node --experimental-strip-types scripts/test-firms.mjs"
+    "test:firms": "node --experimental-strip-types scripts/test-firms.mjs",
+    "test:api": "node scripts/test-api.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

@@ -10,6 +10,7 @@ import {
   inAlgeria,
   firmsRowsToFires,
 } from '../api/_firms.ts'
+import { WILAYAS } from '../shared/wilayas.ts'
 
 let failures = 0
 function check(label, actual, expected) {
@@ -47,7 +48,7 @@ const rows = parseCsv(CSV)
 check('parseCsv row count', rows.length, 7)
 check('parseCsv reads a field', rows[0].confidence, 'n')
 
-const fires = firmsRowsToFires(rows)
+const fires = firmsRowsToFires(rows, WILAYAS)
 
 // 3 نقاط متجاورة في تيزي وزو تندمج، + جيجل + باتنة = 3 تجمّعات
 // (باريس مستبعدة، والصف الناقص مستبعد)

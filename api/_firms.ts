@@ -7,8 +7,6 @@
  * والواجهة تعرضه بحدود متقطّعة وشارة «رصد فضائي — غير مؤكد».
  */
 
-import { nearestWilaya } from '../shared/wilayas.ts'
-
 export type Severity = 'moderate' | 'serious' | 'critical'
 
 export interface FirmsFire {
@@ -177,8 +175,39 @@ export function inAlgeria(lat: number, lon: number): boolean {
   )
 }
 
-/** يحوّل صفوف CSV الخام إلى قائمة حرائق مجمّعة وجاهزة للعرض. */
-export function firmsRowsToFires(rows: Record<string, string>[]): FirmsFire[] {
+export interface Wilaya {
+  code: string
+  name: string
+  lat: number
+  lon: number
+}
+
+/** أقرب ولاية بالمسافة الإقليدية المصحّحة بخط العرض. */
+function nearestWilaya(lat: number, lon: number, wilayas: Wilaya[]): Wilaya {
+  let best = wilayas[0]
+  let bestDistance = Number.POSITIVE_INFINITY
+  const cos = Math.cos((lat * Math.PI) / 180)
+
+  for (const wilaya of wilayas) {
+    const dLat = wilaya.lat - lat
+    const dLon = (wilaya.lon - lon) * cos
+    const distance = dLat * dLat + dLon * dLon
+    if (distance < bestDistance) {
+      bestDistance = distance
+      best = wilaya
+    }
+  }
+  return best
+}
+
+/**
+ * يحوّل صفوف CSV الخام إلى قائمة حرائق مجمّعة وجاهزة للعرض.
+ * جدول الولايات يُمرَّر من الخارج ليبقى هذا الملف بلا اعتماديات.
+ */
+export function firmsRowsToFires(
+  rows: Record<string, string>[],
+  wilayas: Wilaya[],
+): FirmsFire[] {
   const points: Point[] = []
 
   for (const row of rows) {
@@ -209,7 +238,7 @@ export function firmsRowsToFires(rows: Record<string, string>[]): FirmsFire[] {
 
     const lat = Number(strongest.lat.toFixed(5))
     const lon = Number(strongest.lon.toFixed(5))
-    const wilaya = nearestWilaya(lat, lon)
+    const wilaya = nearestWilaya(lat, lon, wilayas)
 
     const confidences = group.map((p) => p.confidence).filter((c): c is number => c !== undefined)
     const confidence =

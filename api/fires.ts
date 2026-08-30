@@ -11,37 +11,101 @@
  *   FIRMS_SOURCES  اختياري — مفصولة بفواصل، الافتراضي: VIIRS_SNPP_NRT,VIIRS_NOAA20_NRT
  *   FIRMS_DAYS     اختياري — عدد الأيام (1..10)، الافتراضي 1
  */
-import { firmsRowsToFires, parseCsv } from './_firms.ts'
+import { firmsRowsToFires, parseCsv } from './_firms'
+import { WILAYAS } from '../shared/wilayas'
+
+/**
+ * توقيع Node الكلاسيكي `(req, res)` مدعوم على Vercel منذ البداية وفي كل
+ * الإعدادات، بخلاف توقيع الويب `export function GET()` الأحدث.
+ * الأنواع مكتوبة يدوياً هنا لتجنّب اعتمادية `@vercel/node`.
+ */
+interface ApiRequest {
+  query?: Record<string, string | string[] | undefined>
+}
+
+interface ApiResponse {
+  status(code: number): ApiResponse
+  setHeader(name: string, value: string): void
+  json(body: unknown): void
+}
 
 const DEFAULT_SOURCES = 'VIIRS_SNPP_NRT,VIIRS_NOAA20_NRT'
 const FETCH_TIMEOUT_MS = 12_000
 
-function jsonResponse(body: unknown, status: number, cacheSeconds: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      // التحديث التلقائي: حافة Vercel تعيد الجلب كل `cacheSeconds`
-      // وتُقدّم النسخة القديمة أثناء ذلك حتى لا ينتظر أحد.
-      'Cache-Control': `public, s-maxage=${cacheSeconds}, stale-while-revalidate=1800`,
-    },
-  })
+/** نتيجة محاولة جلب مصدر واحد. */
+interface SourceResult {
+  source: string
+  rows: Record<string, string>[]
+  error?: string
 }
 
-export async function GET(): Promise<Response> {
+/**
+ * يمنع تسرّب المفتاح إلى أي رسالة خطأ تُعاد للمتصفح.
+ * رسائل FIRMS قد تتضمّن الرابط كاملاً بما فيه المفتاح.
+ */
+function redact(text: string, mapKey: string): string {
+  return text.split(mapKey).join('***')
+}
+
+async function fetchSource(source: string, mapKey: string, days: number): Promise<SourceResult> {
+  const url = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${mapKey}/${source}/DZA/${days}`
+
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+    const text = await response.text()
+
+    if (!response.ok) {
+      return {
+        source,
+        rows: [],
+        error: `HTTP ${response.status}: ${redact(text.slice(0, 160), mapKey)}`,
+      }
+    }
+
+    // FIRMS يردّ بنص عادي (لا CSV) عند مفتاح غير صالح أو تجاوز الحصة،
+    // ونصّه يشرح السبب بدقة فنُعيده كما هو بعد إخفاء المفتاح.
+    const head = text.slice(0, 200).toLowerCase()
+    if (!head.includes('latitude') || !head.includes('longitude')) {
+      return {
+        source,
+        rows: [],
+        error: `استجابة غير متوقعة: ${redact(text.slice(0, 160).trim(), mapKey)}`,
+      }
+    }
+
+    return { source, rows: parseCsv(text) }
+  } catch (error) {
+    const name = error instanceof Error ? error.name : 'Error'
+    const message = error instanceof Error ? error.message : String(error)
+    return { source, rows: [], error: `${name}: ${redact(message, mapKey)}` }
+  }
+}
+
+export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   const mapKey = process.env.FIRMS_MAP_KEY?.trim()
 
+  const send = (body: unknown, status: number, cacheSeconds: number): void => {
+    // التحديث التلقائي: حافة Vercel تعيد الجلب كل `cacheSeconds`
+    // وتُقدّم النسخة القديمة أثناء ذلك حتى لا ينتظر أحد.
+    response.setHeader(
+      'Cache-Control',
+      `public, s-maxage=${cacheSeconds}, stale-while-revalidate=1800`,
+    )
+    response.status(status).json(body)
+  }
+
   if (!mapKey) {
-    return jsonResponse(
+    send(
       {
         error: 'missing_map_key',
         message:
-          'لم يُضبط FIRMS_MAP_KEY على الخادم. احصل على مفتاح مجاني من ' +
-          'https://firms.modaps.eosdis.nasa.gov/api/map_key/ وأضفه في إعدادات المشروع.',
+          'لم يُضبط FIRMS_MAP_KEY على الخادم. أضِفه في إعدادات المشروع ثم أعِد النشر.',
+        hint: 'Vercel → Settings → Environment Variables → FIRMS_MAP_KEY, then redeploy.',
       },
       503,
       60,
     )
+    return
   }
 
   const sources = (process.env.FIRMS_SOURCES?.trim() || DEFAULT_SOURCES)
@@ -51,42 +115,30 @@ export async function GET(): Promise<Response> {
 
   const days = Math.min(10, Math.max(1, Number(process.env.FIRMS_DAYS ?? 1) || 1))
 
-  const results = await Promise.allSettled(
-    sources.map(async (source) => {
-      const url = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${mapKey}/${source}/DZA/${days}`
-      const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
-      if (!response.ok) throw new Error(`${source}: HTTP ${response.status}`)
-
-      const text = await response.text()
-      // عند تجاوز الحصة يردّ FIRMS بنص عادي لا بـ CSV
-      if (!text.toLowerCase().startsWith('country_id') && !text.toLowerCase().includes('latitude')) {
-        throw new Error(`${source}: استجابة غير متوقعة`)
-      }
-      return parseCsv(text)
-    }),
+  const results = await Promise.all(
+    sources.map((source) => fetchSource(source, mapKey, days)),
   )
 
-  const rows = results.flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
-  const failures = results
-    .map((result, index) => (result.status === 'rejected' ? sources[index] : null))
-    .filter((source): source is string => source !== null)
+  const rows = results.flatMap((result) => result.rows)
+  const failures = results.filter((result) => result.error)
 
   // فشل كل المصادر: نُرجع خطأً بدل إيهام المستخدم بعدم وجود حرائق
-  if (rows.length === 0 && failures.length === sources.length) {
-    return jsonResponse(
+  if (failures.length === sources.length) {
+    send(
       {
         error: 'upstream_failed',
         message: 'تعذّر جلب البيانات من NASA FIRMS حالياً.',
-        failedSources: failures,
+        failures: failures.map((failure) => ({ source: failure.source, error: failure.error })),
       },
       502,
       30,
     )
+    return
   }
 
-  const fires = firmsRowsToFires(rows)
+  const fires = firmsRowsToFires(rows, WILAYAS)
 
-  return jsonResponse(
+  send(
     {
       fires,
       updatedAt: new Date().toISOString(),
@@ -94,7 +146,13 @@ export async function GET(): Promise<Response> {
       sources,
       days,
       rawDetections: rows.length,
-      ...(failures.length > 0 ? { partialFailure: failures } : {}),
+      ...(failures.length > 0
+        ? { partialFailure: failures.map((f) => ({ source: f.source, error: f.error })) }
+        : {}),
+      // ?debug=1 يكشف ما الذي وصل فعلاً من كل مصدر
+      ...(request.query?.debug
+        ? { debug: results.map((r) => ({ source: r.source, rows: r.rows.length, error: r.error })) }
+        : {}),
     },
     200,
     600,
