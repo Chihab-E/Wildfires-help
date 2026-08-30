@@ -275,10 +275,22 @@ interface ApiResponse {
 const DEFAULT_SOURCES = 'VIIRS_SNPP_NRT,VIIRS_NOAA20_NRT'
 const FETCH_TIMEOUT_MS = 12_000
 
+/** محاولة واحدة على عنوان واحد — تُسجَّل كلها للتشخيص. */
+interface Attempt {
+  endpoint: string
+  status: number | null
+  rows: number
+  /** أول ما ردّ به FIRMS، بعد إخفاء المفتاح */
+  sample: string
+  ok: boolean
+}
+
 interface SourceResult {
   source: string
   rows: Record<string, string>[]
+  endpoint?: string
   error?: string
+  attempts: Attempt[]
 }
 
 /**
@@ -289,38 +301,71 @@ function redact(text: string, mapKey: string): string {
   return text.split(mapKey).join('***')
 }
 
+/**
+ * صيغتان لطلب نفس البيانات. لا يمكن التحقّق من أيّهما تعمل إلا من خادم
+ * يصل إلى FIRMS فعلاً، فنجرّب الاثنتين ونأخذ ما يعطي بيانات، ونُسجّل
+ * ما ردّ به كلٌّ منهما. الكلفة طلبان لكل مصدر كل عشر دقائق —
+ * لا شيء أمام حصّة 5000/10 دقائق.
+ */
+function buildCandidates(source: string, mapKey: string, days: number): [string, string][] {
+  const base = 'https://firms.modaps.eosdis.nasa.gov/api'
+  const bbox = `${ALGERIA_BBOX.west},${ALGERIA_BBOX.south},${ALGERIA_BBOX.east},${ALGERIA_BBOX.north}`
+  return [
+    ['country', `${base}/country/csv/${mapKey}/${source}/DZA/${days}`],
+    ['area', `${base}/area/csv/${mapKey}/${source}/${bbox}/${days}`],
+  ]
+}
+
+/** هل النص ترويسة CSV صالحة من FIRMS؟ */
+function looksLikeFirmsCsv(text: string): boolean {
+  const head = text.slice(0, 300).toLowerCase()
+  return head.includes('latitude') && head.includes('longitude')
+}
+
 async function fetchSource(source: string, mapKey: string, days: number): Promise<SourceResult> {
-  const url = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${mapKey}/${source}/DZA/${days}`
+  const attempts: Attempt[] = []
+  let best: { endpoint: string; rows: Record<string, string>[] } | null = null
 
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
-    const text = await response.text()
+  for (const [endpoint, url] of buildCandidates(source, mapKey, days)) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+      const text = await response.text()
+      const valid = response.ok && looksLikeFirmsCsv(text)
+      const rows = valid ? parseCsv(text) : []
 
-    if (!response.ok) {
-      return {
-        source,
-        rows: [],
-        error: `HTTP ${response.status}: ${redact(text.slice(0, 160), mapKey)}`,
+      attempts.push({
+        endpoint,
+        status: response.status,
+        rows: rows.length,
+        // النص الخام هو ما يشرح العطل فعلاً («Invalid MAP_KEY» مثلاً)
+        sample: redact(text.slice(0, 200).trim(), mapKey),
+        ok: valid,
+      })
+
+      if (valid && (!best || rows.length > best.rows.length)) {
+        best = { endpoint, rows }
       }
+      // صيغة أعطت بيانات فعلية تكفي، فلا داعي لطلب إضافي
+      if (best && best.rows.length > 0) break
+    } catch (error) {
+      const name = error instanceof Error ? error.name : 'Error'
+      const message = error instanceof Error ? error.message : String(error)
+      attempts.push({
+        endpoint,
+        status: null,
+        rows: 0,
+        sample: redact(`${name}: ${message}`, mapKey),
+        ok: false,
+      })
     }
-
-    // FIRMS يردّ بنص عادي (لا CSV) عند مفتاح غير صالح أو تجاوز الحصة،
-    // ونصّه يشرح السبب بدقة فنُعيده كما هو بعد إخفاء المفتاح.
-    const head = text.slice(0, 200).toLowerCase()
-    if (!head.includes('latitude') || !head.includes('longitude')) {
-      return {
-        source,
-        rows: [],
-        error: `استجابة غير متوقعة: ${redact(text.slice(0, 160).trim(), mapKey)}`,
-      }
-    }
-
-    return { source, rows: parseCsv(text) }
-  } catch (error) {
-    const name = error instanceof Error ? error.name : 'Error'
-    const message = error instanceof Error ? error.message : String(error)
-    return { source, rows: [], error: `${name}: ${redact(message, mapKey)}` }
   }
+
+  if (!best) {
+    const reason = attempts.map((a) => `${a.endpoint} → ${a.status ?? 'شبكة'}: ${a.sample}`).join(' | ')
+    return { source, rows: [], error: reason || 'لا استجابة', attempts }
+  }
+
+  return { source, rows: best.rows, endpoint: best.endpoint, attempts }
 }
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
@@ -354,9 +399,34 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     .map((source) => source.trim())
     .filter(Boolean)
 
-  const days = Math.min(10, Math.max(1, Number(process.env.FIRMS_DAYS ?? 1) || 1))
+  const days = Math.min(10, Math.max(1, Number(process.env.FIRMS_DAYS ?? 2) || 2))
 
   const results = await Promise.all(sources.map((source) => fetchSource(source, mapKey, days)))
+
+  /*
+   * ‎?probe=1‎ — تشخيص خام: ماذا ردّ FIRMS حرفياً على كل صيغة عنوان،
+   * بلا تخزين مؤقت. هذا هو المكان الوحيد الذي يمكن فيه رؤية سبب العطل،
+   * لأن FIRMS لا يُشرح إلا من خادم يصل إليه فعلاً.
+   */
+  if (request.query?.probe) {
+    send(
+      {
+        probe: true,
+        checkedAt: new Date().toISOString(),
+        days,
+        mapKeyLength: mapKey.length,
+        sources: results.map((result) => ({
+          source: result.source,
+          chosenEndpoint: result.endpoint ?? null,
+          usableRows: result.rows.length,
+          attempts: result.attempts,
+        })),
+      },
+      200,
+      0,
+    )
+    return
+  }
 
   const rows = results.flatMap((result) => result.rows)
   const failures = results.filter((result) => result.error)
@@ -396,7 +466,9 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         ? {
             debug: results.map((result) => ({
               source: result.source,
+              endpoint: result.endpoint ?? null,
               rows: result.rows.length,
+              attempts: result.attempts,
               error: result.error,
             })),
           }

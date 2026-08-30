@@ -54,7 +54,7 @@ Vercel → Settings → Environment Variables.
 |---|---|---|
 | `FIRMS_MAP_KEY` | **الوحيد المطلوب للبيانات الحقيقية.** مفتاح مجاني من [FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/) | — |
 | `FIRMS_SOURCES` | مصادر الأقمار مفصولة بفواصل | `VIIRS_SNPP_NRT,VIIRS_NOAA20_NRT` |
-| `FIRMS_DAYS` | عدد الأيام السابقة (1..10) | `1` |
+| `FIRMS_DAYS` | عدد الأيام السابقة (1..10) | `2` |
 
 ### متغيرات الواجهة (اختيارية كلها)
 
@@ -118,6 +118,28 @@ NASA FIRMS  ──►  api/fires.ts  ──►  حافة Vercel  ──►  ال
 التشغيل بـ `ERR_MODULE_NOT_FOUND`. لذلك ملف الدالة مكتفٍ بذاته تماماً،
 ويحرس ذلك اختبار في `npm run test:api`. أي منطق جديد يُضاف داخل الملف
 نفسه، أو يُستورد بامتداد `.js` صريح.
+
+#### `?probe=1` — الفحص الحاسم
+
+`‎/api/fires?probe=1‎` يجرّب كل صيغ عناوين FIRMS ويعرض **ما ردّ به حرفياً**
+لكل واحدة (رمز الحالة وأول 200 حرف)، بلا تخزين مؤقت. هذا هو المكان الوحيد
+الذي يظهر فيه سبب العطل، لأن FIRMS لا يُجيب إلا خادماً يصل إليه فعلاً:
+
+```jsonc
+{ "probe": true, "days": 2, "mapKeyLength": 32,
+  "sources": [{ "source": "VIIRS_SNPP_NRT", "chosenEndpoint": "country",
+    "attempts": [{ "endpoint": "country", "status": 200, "rows": 41,
+                   "sample": "country_id,latitude,longitude,…", "ok": true }] }] }
+```
+
+`sample` يحمل ردّ FIRMS كما هو — مثل `Invalid MAP_KEY` — والمفتاح
+مُستبدَل بـ `***` دائماً، ولا يُذكر منه إلا طوله.
+
+#### صيغتان لا واحدة
+
+FIRMS يقبل `‎/api/country/csv/…/DZA/…‎` و`‎/api/area/csv/…/{bbox}/…‎`.
+تُجرَّب الأولى ثم الثانية عند الحاجة، فأي خلل في إحدى الصيغتين لا يُعطّل
+التطبيق. الصيغة المستعملة تظهر في `debug[].endpoint`.
 
 أضِف `?debug=1` لترى كم صفاً وصل من كل مصدر على حدة.
 المفتاح لا يظهر أبداً في أي رسالة خطأ (يُستبدل بـ `***`).

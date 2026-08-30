@@ -110,7 +110,7 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
   })
   check('استجابة صالحة ← 200', r.status === 200, JSON.stringify(r.body).slice(0, 200))
   check('يبني رابط FIRMS القُطري للجزائر',
-    urls[0] === `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${MAP_KEY}/VIIRS_SNPP_NRT/DZA/1`,
+    urls[0] === `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${MAP_KEY}/VIIRS_SNPP_NRT/DZA/2`,
     urls[0])
   check('يدمج النقطتين المتجاورتين في حريق واحد', r.body.fires.length === 2,
     `عدد الحرائق: ${r.body.fires?.length}`)
@@ -181,6 +181,42 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
     },
   })
   check('FIRMS_DAYS مقيَّد بـ 10', urls[0].endsWith('/DZA/10'), urls[0])
+}
+
+// 8) الرجوع إلى صيغة area حين تفشل صيغة country
+{
+  const urls = []
+  const r = await invoke({
+    env: { FIRMS_MAP_KEY: MAP_KEY, FIRMS_SOURCES: 'VIIRS_SNPP_NRT' },
+    fetchImpl: async (url) => {
+      urls.push(url)
+      return url.includes('/country/')
+        ? new Response('Invalid country', { status: 200 })
+        : new Response(CSV, { status: 200 })
+    },
+  })
+  check('يجرّب country ثم area', urls.length === 2 && urls[1].includes('/area/csv/'), urls.join(' | '))
+  check('ينجح عبر الصيغة البديلة', r.status === 200 && r.body.fires.length === 2,
+    JSON.stringify(r.body).slice(0, 160))
+}
+
+// 9) وضع الفحص يكشف ردّ FIRMS الحرفي ولا يخزّن مؤقتاً
+{
+  const r = await invoke({
+    env: { FIRMS_MAP_KEY: MAP_KEY, FIRMS_SOURCES: 'VIIRS_SNPP_NRT' },
+    query: { probe: '1' },
+    fetchImpl: async () => new Response('Invalid MAP_KEY.', { status: 200 }),
+  })
+  check('الفحص يردّ 200', r.status === 200)
+  check('الفحص يعرض كل المحاولات', r.body.sources[0].attempts.length === 2,
+    JSON.stringify(r.body.sources?.[0]))
+  check('الفحص ينقل نص FIRMS حرفياً',
+    r.body.sources[0].attempts[0].sample.includes('Invalid MAP_KEY'),
+    JSON.stringify(r.body.sources?.[0]?.attempts?.[0]))
+  check('الفحص بلا تخزين مؤقت', /s-maxage=0/.test(r.headers['Cache-Control'] ?? ''),
+    r.headers['Cache-Control'])
+  check('الفحص لا يكشف المفتاح', !JSON.stringify(r.body).includes(MAP_KEY))
+  check('الفحص يذكر طول المفتاح فقط', r.body.mapKeyLength === MAP_KEY.length, `${r.body.mapKeyLength}`)
 }
 
 console.log(`\n${failures === 0 ? 'كل الاختبارات نجحت' : `${failures} اختبار فشل`}`)
