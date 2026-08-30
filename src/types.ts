@@ -73,4 +73,6 @@ export interface FiresPayload {
   sourceLabel: string
   /** سبب اللجوء للبيانات التجريبية، إن وُجد */
   notice?: string
+  /** تفصيل تقني للعطل — يُعرض مطوياً لمن ينشر الموقع */
+  diagnostic?: string
 }

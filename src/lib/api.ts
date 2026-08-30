@@ -178,14 +178,19 @@ function extractRecords(payload: unknown): unknown[] {
 
 const REQUEST_TIMEOUT_MS = 15_000
 
-/** حزمة البيانات التجريبية مع سبب اللجوء إليها. */
-function demoPayload(notice?: string): FiresPayload {
+/**
+ * حزمة البيانات التجريبية مع سبب اللجوء إليها.
+ * `diagnostic` نص تقني لمن ينشر الموقع، يُعرض مطوياً في الواجهة
+ * حتى لا يُضطر أحد لفتح ‎/api/fires‎ يدوياً لمعرفة سبب العطل.
+ */
+function demoPayload(notice?: string, diagnostic?: string): FiresPayload {
   return {
     fires: buildDemoFires(),
     updatedAt: new Date().toISOString(),
     isDemo: true,
     sourceLabel: 'بيانات تجريبية',
     notice,
+    diagnostic,
   }
 }
 
@@ -210,22 +215,45 @@ export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
   let payload: unknown
   try {
     const response = await fetch(config.firesApiUrl, { headers, signal: combined })
-    payload = await response.json().catch(() => null)
+    const text = await response.text()
+
+    try {
+      payload = JSON.parse(text)
+    } catch {
+      payload = null
+    }
+
+    const serverMessage =
+      typeof payload === 'object' && payload !== null
+        ? toText((payload as Record<string, unknown>).message)
+        : ''
 
     if (!response.ok) {
-      // تفاصيل الخادم موجّهة لمن ينشر الموقع لا لمستخدميه،
-      // فتذهب إلى سجلّ المتصفح بينما يرى المستخدم جملة واضحة.
-      const detail =
-        (typeof payload === 'object' &&
-          payload !== null &&
-          toText((payload as Record<string, unknown>).message)) ||
-        `HTTP ${response.status}`
-      console.warn(`[fires] ${detail}`)
-      return demoPayload('تعذّر تحميل بيانات الحرائق المباشرة الآن.')
+      return demoPayload(
+        'تعذّر تحميل بيانات الحرائق المباشرة الآن.',
+        `HTTP ${response.status} — ${serverMessage || text.slice(0, 300)}`,
+      )
+    }
+
+    /*
+     * ردّ ناجح لكنه ليس JSON = العنوان لا يصل إلى الدالة أصلاً
+     * (قاعدة إعادة كتابة تبتلع ‎/api‎ فتُعيد صفحة HTML بحالة 200).
+     * بدون هذا الفحص كان التطبيق يعرض «صفر حرائق» بلا أي تحذير،
+     * وهو أسوأ فشل ممكن هنا: عطل يبدو كأنه «لا توجد حرائق».
+     */
+    if (typeof payload !== 'object' || payload === null) {
+      const contentType = response.headers.get('content-type') ?? 'غير معروف'
+      return demoPayload(
+        'مصدر البيانات المباشر لا يستجيب بشكل صحيح.',
+        `الرد ليس JSON (content-type: ${contentType}) — ${text.slice(0, 300)}`,
+      )
     }
   } catch (error) {
     if (signal?.aborted) throw error
-    return demoPayload('لا يوجد اتصال بمصدر البيانات المباشر.')
+    return demoPayload(
+      'لا يوجد اتصال بمصدر البيانات المباشر.',
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+    )
   }
 
   const fires = extractRecords(payload)

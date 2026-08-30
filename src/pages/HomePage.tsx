@@ -39,12 +39,37 @@ export function HomePage({
       {payload?.isDemo && (
         <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           <span aria-hidden="true">⚠️</span>
-          <p className="leading-relaxed">
-            <strong className="font-bold">بيانات تجريبية.</strong>{' '}
-            {payload.notice ?? 'لا يوجد مصدر بيانات مباشر.'} المعروض أمثلة توضيحية{' '}
-            <span className="font-bold">وليست حرائق حقيقية</span>. للحالات الطارئة اتصل بالحماية
-            المدنية على <span className="num font-bold">14</span>.
-          </p>
+          <div className="min-w-0">
+            <p className="leading-relaxed">
+              <strong className="font-bold">بيانات تجريبية.</strong>{' '}
+              {payload.notice ?? 'لا يوجد مصدر بيانات مباشر.'} المعروض أمثلة توضيحية{' '}
+              <span className="font-bold">وليست حرائق حقيقية</span>. للحالات الطارئة اتصل بالحماية
+              المدنية على <span className="num font-bold">14</span>.
+            </p>
+
+            {/* تفصيل تقني لمن ينشر الموقع — مطوي حتى لا يزعج المستخدم العادي */}
+            {payload.diagnostic && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs font-bold opacity-80">
+                  تفاصيل تقنية
+                </summary>
+                <pre
+                  dir="ltr"
+                  className="mt-1.5 max-h-40 overflow-auto rounded-lg bg-amber-900/10 p-2 text-start text-[11px] leading-relaxed whitespace-pre-wrap break-all"
+                >
+                  {payload.diagnostic}
+                </pre>
+                <a
+                  href="/api/fires?debug=1"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="mt-1.5 inline-block text-xs font-bold underline"
+                >
+                  فحص ‎/api/fires‎ مباشرة
+                </a>
+              </details>
+            )}
+          </div>
         </div>
       )}
 

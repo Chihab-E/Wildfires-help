@@ -329,7 +329,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // وتُقدّم النسخة القديمة أثناء ذلك حتى لا ينتظر أحد.
     response.setHeader(
       'Cache-Control',
-      `public, s-maxage=${cacheSeconds}, stale-while-revalidate=1800`,
+      `public, max-age=0, s-maxage=${cacheSeconds}, stale-while-revalidate=1800`,
     )
     response.status(status).json(body)
   }
