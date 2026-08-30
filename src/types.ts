@@ -10,7 +10,8 @@ export type FireStatus = 'active' | 'contained' | 'extinguished'
  * مصدر المعلومة:
  * - `satellite`: رصد فضائي آلي (مثل FIRMS/VIIRS) — نقطة حرارية غير مؤكدة ميدانياً.
  * - `official`: بلاغ من جهة رسمية (الحماية المدنية، محافظة الغابات...).
- * - `report`: بلاغ من مستخدم عبر التطبيق.
+ * - `report`: بلاغ مواطن يصل من مصدر خارجي. التطبيق نفسه لا ينتجه
+ *   (نموذج الإبلاغ مُزال حالياً)، لكن المحوّل يقبله إن ورد من API.
  */
 export type SourceKind = 'satellite' | 'official' | 'report'
 
@@ -46,21 +47,6 @@ export interface Fire {
 
 /** مرشّحات الخريطة. */
 export type FilterKey = 'all' | 'active' | 'verified' | 'recent'
-
-/** ما يُرسله المستخدم عند الإبلاغ عن حريق. */
-export interface FireReport {
-  lat: number
-  lon: number
-  wilayaCode: string
-  wilaya: string
-  commune: string
-  severity: Severity
-  description: string
-  /** صورة اختيارية بصيغة data URL بعد الضغط */
-  photo?: string
-  reportedAt: string
-  userAgent: string
-}
 
 /** نتيجة جلب الحرائق مع بيانات المصدر. */
 export interface FiresPayload {

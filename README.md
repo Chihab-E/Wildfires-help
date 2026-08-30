@@ -1,6 +1,6 @@
 # 🔥 Algeria Fire — حرائق الجزائر
 
-تطبيق ويب خفيف (PWA) لتتبع حرائق الغابات في الجزائر: خريطة تفاعلية، إبلاغ عن حريق،
+تطبيق ويب خفيف (PWA) لتتبع حرائق الغابات في الجزائر: خريطة تفاعلية
 وأرقام الطوارئ الوطنية. عربي بالكامل مع دعم RTL، مصمّم للهاتف أولاً.
 
 > **بيانات حقيقية تُحدَّث تلقائياً:** التطبيق يجلب نقاط الحريق من **NASA FIRMS**
@@ -62,8 +62,6 @@ Vercel → Settings → Environment Variables.
 |---|---|---|
 | `VITE_FIRES_API_URL` | مصدر الحرائق. `off` يُجبر البيانات التجريبية | `/api/fires` |
 | `VITE_FIRES_API_AUTH` | ترويسة `Authorization` للمصدر أعلاه | — |
-| `VITE_REPORT_ENDPOINT` | عنوان يستقبل البلاغات عبر `POST JSON` | — |
-| `VITE_REPORT_ENDPOINT_AUTH` | ترويسة `Authorization` لنقطة البلاغات | — |
 | `VITE_MAP_TILE_URL` | قالب بلاط الخريطة | OpenStreetMap |
 | `VITE_MAP_TILE_ATTRIBUTION` | نص إسناد البلاط | OpenStreetMap |
 | `VITE_REFRESH_MINUTES` | إعادة الجلب في المتصفح بالدقائق (`0` = تعطيل) | `10` |
@@ -224,46 +222,22 @@ NASA FIRMS  ──►  api/fires.ts  ──►  حافة Vercel  ──►  ال
 
 ---
 
-## استقبال البلاغات
+## نموذج الإبلاغ — مُزال حالياً
 
-اضبط `VITE_REPORT_ENDPOINT` على أي عنوان يقبل `POST application/json`.
-جسم الطلب:
+كان في التطبيق نموذج «أبلغ عن حريق» أُزيل بالكامل لعدم وجود جهة تستقبل
+البلاغات. نموذج يجمع موقعاً ووصفاً وصورة ثم لا يصل إلى أحد أسوأ من غيابه
+في تطبيق طوارئ: يوهم المستخدم أنه أبلغ فعلاً. الإجراء الرئيسي في الصفحة
+الرئيسية صار الاتصال المباشر بالحماية المدنية على **14**.
 
-```jsonc
-{
-  "lat": 36.75123,
-  "lon": 5.08211,
-  "wilayaCode": "06",
-  "wilaya": "بجاية",
-  "commune": "أميزور",
-  "severity": "serious",          // moderate | serious | critical
-  "description": "دخان كثيف…",
-  "photo": "data:image/jpeg;base64,…", // اختياري، مضغوطة إلى 1280px
-  "reportedAt": "2026-08-29T05:12:00Z",
-  "userAgent": "…"
-}
-```
+لإعادته لاحقاً يلزم:
 
-الاستجابة `2xx` تعني نجاح الاستلام. أي خطأ شبكة أو `5xx` يجعل التطبيق يحفظ البلاغ
-في `localStorage` ويعيد إرساله تلقائياً عند عودة الاتصال.
+1. جهة تستقبل `POST application/json` (دالة Vercel، Cloudflare Worker،
+   Formspree، n8n…) وتخزّن البلاغات فعلاً.
+2. مسار مراجعة بشري قبل عرض أي بلاغ على الخريطة — البلاغ غير المُراجَع
+   لا يجوز أن يظهر كحريق مؤكد.
 
-خيارات جاهزة: دالة Vercel، Cloudflare Worker، Formspree، Google Apps Script، n8n…
-
-```ts
-// api/report.ts — مثال بسيط يعيد التوجيه إلى Webhook
-export default async function handler(request: Request) {
-  if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
-  const report = await request.json()
-  await fetch(process.env.REPORT_WEBHOOK_URL!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(report),
-  })
-  return new Response(null, { status: 204 })
-}
-```
-
-ثم: `VITE_REPORT_ENDPOINT=/api/report`
+طبقة البيانات تقبل أصلاً `sourceKind: "report"` من أي مصدر خارجي،
+فعرض بلاغات المواطنين لا يحتاج تغييراً في المحوّل — فقط مصدراً يوفّرها.
 
 ---
 
@@ -284,16 +258,15 @@ src/
 │  └─ useHashRoute.ts      موجّه بسيط عبر hash (بلا مكتبة)
 ├─ lib/
 │  ├─ config.ts            كل متغيرات البيئة في مكان واحد
-│  ├─ api.ts               الجلب + البلاغات + الطابور المحلي
+│  ├─ api.ts               الجلب والتحويل
 │  ├─ filters.ts           المرشّحات والإحصاءات والتجميع
-│  ├─ format.ts            التسميات وصياغة الأوقات والأعداد بالعربية
-│  └─ image.ts             ضغط الصور قبل الإرسال
+│  └─ format.ts            التسميات وصياغة الأوقات والأعداد بالعربية
 ├─ data/
 │  ├─ wilayas.ts           الولايات الـ58 وإحداثياتها
 │  ├─ demoFires.ts         بيانات تجريبية فقط (احتياطية)
 │  └─ emergency.ts         أرقام الطوارئ وإرشادات السلامة
 ├─ components/             الخريطة، التفاصيل، المرشّحات، البطاقات، التنقّل
-└─ pages/                  الرئيسية · الخريطة · الإبلاغ · الطوارئ
+└─ pages/                  الرئيسية · الخريطة · الطوارئ
 ```
 
 ## النشر على Vercel

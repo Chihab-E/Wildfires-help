@@ -1,7 +1,7 @@
-import { config, hasLiveApi, hasReportEndpoint } from './config'
+import { config, hasLiveApi } from './config'
 import { buildDemoFires } from '../data/demoFires'
 import { nearestWilaya } from '../data/wilayas'
-import type { Fire, FireReport, FireStatus, FiresPayload, Severity, SourceKind } from '../types'
+import type { Fire, FireStatus, FiresPayload, Severity, SourceKind } from '../types'
 
 /**
  * طبقة البيانات الوحيدة في التطبيق.
@@ -272,112 +272,4 @@ export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
     isDemo: false,
     sourceLabel: sourceName || 'مصدر مباشر',
   }
-}
-
-/* -------------------------------- البلاغات -------------------------------- */
-
-export type ReportOutcome =
-  | { ok: true; queued: false }
-  /** لا توجد نقطة نهاية مضبوطة، أو فشل الإرسال: حُفظ البلاغ محلياً */
-  | { ok: true; queued: true; reason: 'no-endpoint' | 'offline' }
-  | { ok: false; error: string }
-
-const QUEUE_KEY = 'wildfires:pending-reports'
-
-function readQueue(): FireReport[] {
-  try {
-    const raw = localStorage.getItem(QUEUE_KEY)
-    const parsed: unknown = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? (parsed as FireReport[]) : []
-  } catch {
-    return []
-  }
-}
-
-function writeQueue(reports: FireReport[]): void {
-  try {
-    // نحتفظ بآخر 20 بلاغاً فقط حتى لا نملأ مساحة التخزين
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(reports.slice(-20)))
-  } catch {
-    /* التخزين ممتلئ أو معطّل — نتجاهل */
-  }
-}
-
-export function pendingReportsCount(): number {
-  return readQueue().length
-}
-
-function queueReport(report: FireReport): void {
-  writeQueue([...readQueue(), report])
-}
-
-type PostResult = { ok: true } | { ok: false; retryable: boolean; error: string }
-
-/** إرسال خام بدون أي حفظ محلي. */
-async function postReport(report: FireReport): Promise<PostResult> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (config.reportEndpointAuth) headers.Authorization = config.reportEndpointAuth
-
-  try {
-    const response = await fetch(config.reportEndpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(report),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    })
-
-    if (!response.ok) {
-      return {
-        ok: false,
-        // أخطاء الخادم (5xx) قد تنجح لاحقاً، أما 4xx فالبلاغ نفسه مرفوض
-        retryable: response.status >= 500,
-        error: `رفض الخادم البلاغ (رمز ${response.status})`,
-      }
-    }
-    return { ok: true }
-  } catch {
-    return { ok: false, retryable: true, error: 'تعذّر الاتصال بالخادم' }
-  }
-}
-
-/**
- * يرسل البلاغ إلى نقطة النهاية المضبوطة.
- * أي خدمة تقبل `POST application/json` تصلح:
- * Vercel Function، Cloudflare Worker، Formspree، Google Apps Script، n8n…
- */
-export async function submitReport(report: FireReport): Promise<ReportOutcome> {
-  if (!hasReportEndpoint) {
-    queueReport(report)
-    return { ok: true, queued: true, reason: 'no-endpoint' }
-  }
-
-  const result = await postReport(report)
-  if (result.ok) return { ok: true, queued: false }
-
-  if (result.retryable) {
-    queueReport(report)
-    return { ok: true, queued: true, reason: 'offline' }
-  }
-  return { ok: false, error: result.error }
-}
-
-/** يحاول إرسال البلاغات المحفوظة محلياً. يُعيد عدد ما نجح إرساله. */
-export async function flushQueuedReports(): Promise<number> {
-  if (!hasReportEndpoint) return 0
-
-  const queue = readQueue()
-  if (queue.length === 0) return 0
-
-  const remaining: FireReport[] = []
-  let sent = 0
-
-  for (const report of queue) {
-    const result = await postReport(report)
-    if (result.ok) sent++
-    else if (result.retryable) remaining.push(report)
-    // البلاغات المرفوضة نهائياً (4xx) تُسقط حتى لا تعلق في الطابور
-  }
-
-  writeQueue(remaining)
-  return sent
 }

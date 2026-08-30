@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 /** صفحات التطبيق. */
-export const ROUTES = ['home', 'map', 'report', 'emergency'] as const
+export const ROUTES = ['home', 'map', 'emergency'] as const
 export type Route = (typeof ROUTES)[number]
 
 function parseHash(): Route {

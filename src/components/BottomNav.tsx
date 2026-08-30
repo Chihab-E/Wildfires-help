@@ -3,7 +3,6 @@ import type { Route } from '../hooks/useHashRoute'
 const ITEMS: { route: Route; label: string; icon: string }[] = [
   { route: 'home', label: 'الرئيسية', icon: '🏠' },
   { route: 'map', label: 'الخريطة', icon: '🗺️' },
-  { route: 'report', label: 'أبلغ عن حريق', icon: '🔥' },
   { route: 'emergency', label: 'الطوارئ', icon: '🚨' },
 ]
 
@@ -22,7 +21,6 @@ export function BottomNav({
       <ul className="mx-auto flex max-w-lg">
         {ITEMS.map((item) => {
           const active = item.route === current
-          const isReport = item.route === 'report'
           return (
             <li key={item.route} className="flex-1">
               <button
@@ -30,13 +28,7 @@ export function BottomNav({
                 onClick={() => onNavigate(item.route)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex h-[4.25rem] w-full flex-col items-center justify-center gap-1 text-[13px] font-bold leading-none transition-colors ${
-                  active
-                    ? isReport
-                      ? 'text-red-400'
-                      : 'text-strong'
-                    : isReport
-                      ? 'text-red-400/80'
-                      : 'text-muted'
+                  active ? 'text-strong' : 'text-muted'
                 }`}
               >
                 <span className="text-xl leading-none" aria-hidden="true">

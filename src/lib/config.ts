@@ -21,16 +21,6 @@ export const config = {
   /** ترويسة اعتماد اختيارية للـ API أعلاه، مثل: `Bearer xxx` */
   firesApiAuth: str(env.VITE_FIRES_API_AUTH),
 
-  /**
-   * نقطة نهاية استقبال البلاغات (POST JSON).
-   * تعمل مع أي خدمة: Vercel Function، Formspree، Google Apps Script، n8n، Cloudflare Worker...
-   * فارغة => يُحفظ البلاغ محلياً فقط ويُنبَّه المستخدم.
-   */
-  reportEndpoint: str(env.VITE_REPORT_ENDPOINT),
-
-  /** ترويسة اعتماد اختيارية لنقطة البلاغات */
-  reportEndpointAuth: str(env.VITE_REPORT_ENDPOINT_AUTH),
-
   /** بلاط الخريطة — يمكن استبداله بأي مزوّد (MapTiler، Stadia...) */
   tileUrl:
     str(env.VITE_MAP_TILE_URL) || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -48,9 +38,6 @@ export const config = {
 
 /** هل هناك مصدر بيانات حقيقي مضبوط؟ (`off` تُعطّله عمداً) */
 export const hasLiveApi = config.firesApiUrl.length > 0 && config.firesApiUrl !== 'off'
-
-/** هل هناك وجهة حقيقية لاستقبال البلاغات؟ */
-export const hasReportEndpoint = config.reportEndpoint.length > 0
 
 /** حدود الجزائر التقريبية لضبط الخريطة. */
 export const ALGERIA_BOUNDS: [[number, number], [number, number]] = [

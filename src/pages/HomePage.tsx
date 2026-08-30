@@ -88,14 +88,18 @@ export function HomePage({
 
       <StatCards stats={stats} updatedAt={payload?.updatedAt ?? new Date().toISOString()} />
 
-      <button
-        type="button"
-        onClick={() => navigateTo('report')}
+      {/*
+        الإجراء الرئيسي هو الاتصال بالحماية المدنية مباشرة.
+        نموذج الإبلاغ أُزيل مؤقتاً لعدم وجود جهة تستقبل البلاغات،
+        ونموذج يذهب إلى العدم أسوأ من غيابه في تطبيق طوارئ.
+      */}
+      <a
+        href="tel:14"
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/25 active:bg-red-700"
       >
-        <span aria-hidden="true">🔥</span>
-        أبلغ عن حريق
-      </button>
+        <span aria-hidden="true">📞</span>
+        أبلغ الحماية المدنية <span className="num">14</span>
+      </a>
 
       <section className="mt-4" aria-label="خريطة الحرائق">
         <div className="mb-2 flex items-center justify-between">

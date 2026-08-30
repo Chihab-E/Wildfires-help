@@ -2,17 +2,14 @@ import { useEffect } from 'react'
 import { BottomNav } from './components/BottomNav'
 import { HomePage } from './pages/HomePage'
 import { MapPage } from './pages/MapPage'
-import { ReportPage } from './pages/ReportPage'
 import { EmergencyPage } from './pages/EmergencyPage'
 import { useFires } from './hooks/useFires'
 import { useHashRoute, type Route } from './hooks/useHashRoute'
-import { flushQueuedReports } from './lib/api'
 import { formatRelative } from './lib/format'
 
 const TITLES: Record<Route, string> = {
   home: 'Algeria Fire',
   map: 'الخريطة',
-  report: 'أبلغ عن حريق',
   emergency: 'معلومات الطوارئ',
 }
 
@@ -27,15 +24,7 @@ export default function App() {
       route === 'home' ? 'Algeria Fire — حرائق الجزائر' : `${TITLES[route]} — Algeria Fire`
   }, [route])
 
-  // إعادة إرسال البلاغات التي تعذّر إرسالها سابقاً
-  useEffect(() => {
-    void flushQueuedReports()
-    const onOnline = () => void flushQueuedReports()
-    window.addEventListener('online', onOnline)
-    return () => window.removeEventListener('online', onOnline)
-  }, [])
-
-  // «آخر تحديث» و«تحديث» لا معنى لهما في صفحتَي البلاغ والطوارئ
+  // «آخر تحديث» وزر التحديث لا معنى لهما في صفحة الطوارئ
   const showsData = route === 'home' || route === 'map'
 
   return (
@@ -79,7 +68,6 @@ export default function App() {
           <HomePage payload={data} loading={loading} error={error} onRefresh={refresh} />
         )}
         {route === 'map' && <MapPage payload={data} loading={loading} />}
-        {route === 'report' && <ReportPage />}
         {route === 'emergency' && <EmergencyPage />}
       </main>
 
