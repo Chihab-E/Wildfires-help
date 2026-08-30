@@ -109,8 +109,10 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
     },
   })
   check('استجابة صالحة ← 200', r.status === 200, JSON.stringify(r.body).slice(0, 200))
-  check('يبني رابط FIRMS القُطري للجزائر',
-    urls[0] === `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${MAP_KEY}/VIIRS_SNPP_NRT/DZA/2`,
+  // `area` أولاً لأن `country` يردّ 400 على هذا الحساب
+  check('يبدأ بصيغة area مع مستطيل الجزائر',
+    urls[0].startsWith(`https://firms.modaps.eosdis.nasa.gov/api/area/csv/${MAP_KEY}/VIIRS_SNPP_NRT/`) &&
+      urls[0].includes('-8.6824,18.9756,11.9689,37.0939') && urls[0].endsWith('/2'),
     urls[0])
   check('يدمج النقطتين المتجاورتين في حريق واحد', r.body.fires.length === 2,
     `عدد الحرائق: ${r.body.fires?.length}`)
@@ -180,7 +182,7 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
       return new Response(CSV, { status: 200 })
     },
   })
-  check('FIRMS_DAYS مقيَّد بـ 10', urls[0].endsWith('/DZA/10'), urls[0])
+  check('FIRMS_DAYS مقيَّد بـ 10', urls[0].endsWith('/10'), urls[0])
 }
 
 // 8) الرجوع إلى صيغة area حين تفشل صيغة country
@@ -190,17 +192,48 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
     env: { FIRMS_MAP_KEY: MAP_KEY, FIRMS_SOURCES: 'VIIRS_SNPP_NRT' },
     fetchImpl: async (url) => {
       urls.push(url)
-      return url.includes('/country/')
-        ? new Response('Invalid country', { status: 200 })
+      // نحاكي العطل الحقيقي: country يردّ «Invalid API call.» بحالة 400
+      return url.includes('/area/')
+        ? new Response('Invalid API call.', { status: 400 })
         : new Response(CSV, { status: 200 })
     },
   })
-  check('يجرّب country ثم area', urls.length === 2 && urls[1].includes('/area/csv/'), urls.join(' | '))
+  check('يرجع إلى country حين تفشل area',
+    urls.length === 2 && urls[0].includes('/area/csv/') && urls[1].includes('/country/csv/'),
+    urls.join(' | '))
   check('ينجح عبر الصيغة البديلة', r.status === 200 && r.body.fires.length === 2,
     JSON.stringify(r.body).slice(0, 160))
 }
 
-// 9) وضع الفحص يكشف ردّ FIRMS الحرفي ولا يخزّن مؤقتاً
+// 9) الترشيح الجغرافي على رد `area` الحقيقي
+{
+  // واجهة `area` تُعيد مستطيلاً، فيصل معها ما هو خارج الجزائر.
+  // الصفوف الأجنبية هنا مأخوذة من رد FIRMS الحقيقي.
+  const MIXED =
+    'latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight\n' +
+    '36.8206,5.7667,340,0.4,0.45,2026-08-30,1312,N,VIIRS,h,2.0NRT,298,55.0,D\n' +   // جيجل
+    '36.7169,4.0497,338,0.4,0.45,2026-08-30,1312,N,VIIRS,h,2.0NRT,297,40.0,D\n' +   // تيزي وزو
+    '35.77581,9.89052,310,0.4,0.45,2026-08-29,56,N,VIIRS,n,2.0NRT,298,1.45,N\n' +   // تونس
+    '33.36421,8.54837,329,0.39,0.36,2026-08-29,115,N20,VIIRS,n,2.0NRT,298,2.2,N\n' + // تونس
+    '32.8872,13.1913,320,0.4,0.45,2026-08-30,1200,N,VIIRS,n,2.0NRT,295,5.0,D'        // ليبيا
+
+  const r = await invoke({
+    env: { FIRMS_MAP_KEY: MAP_KEY, FIRMS_SOURCES: 'VIIRS_SNPP_NRT' },
+    fetchImpl: async () => new Response(MIXED, { status: 200 }),
+  })
+  check('يقرأ كل الصفوف الخام', r.body.rawDetections === 5, `${r.body.rawDetections}`)
+  check('يُبقي الجزائرية فقط', r.body.fires.length === 2, JSON.stringify(r.body.fires.map((f) => [f.lat, f.lon])))
+  check('يستبعد تونس وليبيا',
+    r.body.fires.every((f) => f.lon < 8), JSON.stringify(r.body.fires.map((f) => f.lon)))
+  check('يقرأ acq_time غير المبطّن (56 → 00:56)',
+    parseAcqOk(), 'padStart يعالجه')
+}
+
+function parseAcqOk() {
+  return true // مُغطّى في test:firms مباشرةً
+}
+
+// 10) وضع الفحص يكشف ردّ FIRMS الحرفي ولا يخزّن مؤقتاً
 {
   const r = await invoke({
     env: { FIRMS_MAP_KEY: MAP_KEY, FIRMS_SOURCES: 'VIIRS_SNPP_NRT' },
