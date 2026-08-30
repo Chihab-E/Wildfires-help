@@ -9,8 +9,7 @@ import {
   parseAcquisition,
   inAlgeria,
   firmsRowsToFires,
-} from '../api/_firms.ts'
-import { WILAYAS } from '../shared/wilayas.ts'
+} from '../api/fires.ts'
 
 let failures = 0
 function check(label, actual, expected) {
@@ -48,13 +47,13 @@ const rows = parseCsv(CSV)
 check('parseCsv row count', rows.length, 7)
 check('parseCsv reads a field', rows[0].confidence, 'n')
 
-const fires = firmsRowsToFires(rows, WILAYAS)
+const fires = firmsRowsToFires(rows)
 
 // 3 نقاط متجاورة في تيزي وزو تندمج، + جيجل + باتنة = 3 تجمّعات
 // (باريس مستبعدة، والصف الناقص مستبعد)
 check('clusters adjacent detections', fires.length, 3)
 
-const tizi = fires.find((f) => f.wilaya === 'تيزي وزو')
+const tizi = fires.find((f) => Math.abs(f.lat - 36.74) < 0.05)
 check('cluster merges 3 pixels', tizi.detectionCount, 3)
 check('cluster sums FRP into severity', tizi.severity, 'critical') // 12.4+44.9+61.2 = 118.5
 check('cluster takes max confidence', tizi.confidence, 90)
@@ -63,9 +62,10 @@ check('satellite points are never verified', [...new Set(fires.map((f) => f.veri
 check('satellite points are marked as such', [...new Set(fires.map((f) => f.sourceKind))], [
   'satellite',
 ])
-check('wilaya inferred from coordinates', fires.find((f) => f.detectionCount === 1 && f.lat > 36.8)?.wilaya, 'جيجل')
+// الخادم لا يُسنِد ولاية عمداً: الواجهة تستنتجها من الإحداثيات
+check('server assigns no wilaya', 'wilaya' in fires[0], false)
 
-const jijel = fires.find((f) => f.wilaya === 'جيجل')
+const jijel = fires.find((f) => Math.abs(f.lat - 36.81) < 0.05)
 check('low FRP stays moderate', jijel.severity, 'moderate')
 
 console.log(`\n${failures === 0 ? 'كل الاختبارات نجحت' : `${failures} اختبار فشل`}`)

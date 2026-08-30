@@ -61,6 +61,17 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
 }
 
 /* ------------------------- إعدادات النشر ------------------------- */
+// المشروع ESM، وVercel يترجم TypeScript ولا يحزمه. أي استيراد نسبي
+// بلا امتداد .js ينهار وقت التشغيل (ERR_MODULE_NOT_FOUND) ويظهر
+// كـ FUNCTION_INVOCATION_FAILED — وهو عطل لا يكشفه البناء ولا مُحمّل Vite.
+{
+  const source = readFileSync(new URL('../api/fires.ts', import.meta.url), 'utf8')
+  const relative = [...source.matchAll(/^\s*import\s[^\n]*from\s+['"](\.[^'"]*)['"]/gm)]
+    .map((match) => match[1])
+    .filter((specifier) => !specifier.endsWith('.js'))
+  check('api/fires.ts: لا استيراد نسبي بلا امتداد .js', relative.length === 0, relative.join(', '))
+}
+
 // خطأ في vercel.json يمنع النشر كلياً، وخطأ في قاعدة إعادة الكتابة
 // يبتلع /api ويُعيد صفحة HTML بدل JSON — كلاهما يستحق حارساً.
 {
