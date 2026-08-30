@@ -8,6 +8,7 @@
  * التشغيل: npm run test:api
  */
 import { createServer } from 'vite'
+import { readFileSync } from 'node:fs'
 
 const server = await createServer({
   logLevel: 'error',
@@ -57,6 +58,24 @@ async function invoke({ env = {}, fetchImpl, query = {} } = {}) {
     globalThis.fetch = savedFetch
   }
   return captured
+}
+
+/* ------------------------- إعدادات النشر ------------------------- */
+// خطأ في vercel.json يمنع النشر كلياً، وخطأ في قاعدة إعادة الكتابة
+// يبتلع /api ويُعيد صفحة HTML بدل JSON — كلاهما يستحق حارساً.
+{
+  const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
+
+  // مخطط Vercel يرفض أي مفتاح غير معروف (بما فيه تعليق «//»)
+  const ALLOWED = new Set(['source', 'destination', 'has', 'missing', 'statusCode'])
+  const unknown = (config.rewrites ?? []).flatMap((rule) =>
+    Object.keys(rule).filter((key) => !ALLOWED.has(key)),
+  )
+  check('vercel.json: لا مفاتيح خارج مخطط rewrites', unknown.length === 0, unknown.join(', '))
+
+  const pattern = new RegExp(`^${config.rewrites[0].source}$`)
+  check('إعادة الكتابة تلتقط مسارات الواجهة', pattern.test('/') && pattern.test('/map'))
+  check('إعادة الكتابة لا تبتلع /api', !pattern.test('/api/fires'))
 }
 
 /* ---------------------------------------------------------------- */
