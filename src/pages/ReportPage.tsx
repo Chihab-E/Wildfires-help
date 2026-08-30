@@ -55,7 +55,7 @@ export function ReportPage() {
       },
       () => {
         setLocating(false)
-        setLocationError('تعذّر تحديد موقعك. اختر النقطة على الخريطة يدوياً.')
+        setLocationError('تعذّر تحديد موقعك. حدّد النقطة على الخريطة بنفسك.')
       },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
     )
@@ -162,7 +162,7 @@ export function ReportPage() {
             )}
           </div>
 
-          <p className="mt-2 text-xs text-muted">أو انقر على الخريطة لتحديد النقطة بدقة.</p>
+          <p className="mt-2 text-xs text-muted">أو انقر على الخريطة لتحديد المكان بدقة.</p>
 
           <FireMap
             fires={[]}
@@ -248,7 +248,7 @@ export function ReportPage() {
             onChange={(event) => setDescription(event.target.value)}
             rows={4}
             maxLength={1000}
-            placeholder="ما الذي تراه؟ اتجاه الرياح، قرب المنازل، الطريق الأقرب…"
+            placeholder="ماذا ترى؟ اتجاه الدخان، قرب المنازل، أقرب طريق…"
             className="w-full resize-y rounded-xl border border-line bg-surface px-3 py-3 text-base text-strong placeholder:text-muted outline-none focus:border-red-500"
           />
           <p className="mt-1 text-end text-xs text-muted">
@@ -306,8 +306,8 @@ export function ReportPage() {
 
         {!hasReportEndpoint && (
           <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
-            لم تُضبط وجهة استقبال البلاغات (<span className="num">VITE_REPORT_ENDPOINT</span>)، لذلك
-            سيُحفظ البلاغ على هذا الجهاز فقط ولن يصل إلى أي جهة.
+            لا توجد جهة تستقبل البلاغات حالياً، لذلك سيُحفظ بلاغك على هذا الجهاز فقط ولن يصل
+            إلى أحد. اتصل بالحماية المدنية مباشرة.
           </p>
         )}
       </form>
@@ -334,10 +334,10 @@ function SubmissionResult({
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         {sent
-          ? 'شكراً لك. البلاغات تُراجع قبل اعتمادها كحريق مؤكد.'
+          ? 'شكراً لك. تُراجَع البلاغات قبل اعتمادها كحريق مؤكد.'
           : submission.reason === 'offline'
-            ? 'تعذّر الاتصال بالخادم. سيُعاد إرسال البلاغ تلقائياً عند عودة الاتصال.'
-            : 'لا توجد وجهة استقبال مضبوطة حالياً، لذلك البلاغ محفوظ محلياً فقط.'}
+            ? 'انقطع الاتصال. سيُرسَل بلاغك تلقائياً بمجرد عودة الشبكة.'
+            : 'لا توجد جهة تستقبل البلاغات حالياً، فبقي بلاغك محفوظاً على جهازك.'}
       </p>
       <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
         إن كان الخطر مباشراً فاتصل بالحماية المدنية على{' '}

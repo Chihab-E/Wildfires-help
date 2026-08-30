@@ -29,7 +29,7 @@ export function BottomNav({
                 type="button"
                 onClick={() => onNavigate(item.route)}
                 aria-current={active ? 'page' : undefined}
-                className={`flex h-16 w-full flex-col items-center justify-center gap-0.5 text-[11px] font-bold leading-tight transition-colors ${
+                className={`flex h-[4.25rem] w-full flex-col items-center justify-center gap-1 text-[13px] font-bold leading-none transition-colors ${
                   active
                     ? isReport
                       ? 'text-red-400'

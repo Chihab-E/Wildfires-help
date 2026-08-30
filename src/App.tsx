@@ -10,7 +10,7 @@ import { flushQueuedReports } from './lib/api'
 import { formatRelative } from './lib/format'
 
 const TITLES: Record<Route, string> = {
-  home: 'حرائق الجزائر',
+  home: 'Algeria Fire',
   map: 'الخريطة',
   report: 'أبلغ عن حريق',
   emergency: 'معلومات الطوارئ',
@@ -24,7 +24,7 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0 })
     document.title =
-      route === 'home' ? 'حرائق الجزائر — تتبع وإبلاغ' : `${TITLES[route]} — حرائق الجزائر`
+      route === 'home' ? 'Algeria Fire — حرائق الجزائر' : `${TITLES[route]} — Algeria Fire`
   }, [route])
 
   // إعادة إرسال البلاغات التي تعذّر إرسالها سابقاً
@@ -35,8 +35,11 @@ export default function App() {
     return () => window.removeEventListener('online', onOnline)
   }, [])
 
+  // «آخر تحديث» و«تحديث» لا معنى لهما في صفحتَي البلاغ والطوارئ
+  const showsData = route === 'home' || route === 'map'
+
   return (
-    <div className="min-h-dvh bg-canvas pb-16">
+    <div className="min-h-dvh bg-canvas pb-[4.75rem]">
       <header className="sticky top-0 z-[1250] border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2">
@@ -45,25 +48,29 @@ export default function App() {
             </span>
             <div className="min-w-0">
               <h1 className="truncate text-base font-bold text-strong">{TITLES[route]}</h1>
-              <p className="truncate text-[11px] text-muted">
-                {loading && !data
-                  ? 'جارٍ تحميل البيانات…'
-                  : data
-                    ? `آخر تحديث ${formatRelative(data.updatedAt)}`
-                    : 'لا توجد بيانات'}
+              <p className="truncate text-[13px] leading-tight text-muted">
+                {showsData
+                  ? loading && !data
+                    ? 'جارٍ تحميل البيانات…'
+                    : data
+                      ? `آخر تحديث ${formatRelative(data.updatedAt)}`
+                      : 'لا توجد بيانات'
+                  : 'حرائق الجزائر'}
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="shrink-0 rounded-lg border border-line bg-subtle px-2.5 py-1.5 text-xs font-bold text-body active:bg-raised disabled:opacity-50"
-            aria-label="تحديث البيانات"
-          >
-            {loading ? '…' : '⟳ تحديث'}
-          </button>
+          {showsData && (
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading}
+              className="shrink-0 rounded-lg border border-line bg-subtle px-2.5 py-1.5 text-xs font-bold text-body active:bg-raised disabled:opacity-50"
+              aria-label="تحديث البيانات"
+            >
+              {loading ? '…' : '⟳ تحديث'}
+            </button>
+          )}
         </div>
       </header>
 

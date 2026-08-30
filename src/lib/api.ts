@@ -198,7 +198,7 @@ function demoPayload(notice?: string): FiresPayload {
  */
 export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
   if (!hasLiveApi) {
-    return demoPayload('لم يُضبط مصدر بيانات مباشر.')
+    return demoPayload('لا يوجد مصدر بيانات مباشر مفعّل.')
   }
 
   const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
@@ -213,16 +213,19 @@ export async function fetchFires(signal?: AbortSignal): Promise<FiresPayload> {
     payload = await response.json().catch(() => null)
 
     if (!response.ok) {
-      const message =
+      // تفاصيل الخادم موجّهة لمن ينشر الموقع لا لمستخدميه،
+      // فتذهب إلى سجلّ المتصفح بينما يرى المستخدم جملة واضحة.
+      const detail =
         (typeof payload === 'object' &&
           payload !== null &&
           toText((payload as Record<string, unknown>).message)) ||
-        `رمز ${response.status}`
-      return demoPayload(`تعذّر جلب البيانات المباشرة (${message}).`)
+        `HTTP ${response.status}`
+      console.warn(`[fires] ${detail}`)
+      return demoPayload('تعذّر تحميل بيانات الحرائق المباشرة الآن.')
     }
   } catch (error) {
     if (signal?.aborted) throw error
-    return demoPayload('تعذّر الاتصال بمصدر البيانات المباشر.')
+    return demoPayload('لا يوجد اتصال بمصدر البيانات المباشر.')
   }
 
   const fires = extractRecords(payload)

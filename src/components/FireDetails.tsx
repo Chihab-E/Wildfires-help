@@ -57,7 +57,7 @@ export function FireDetails({ fire, onClose }: { fire: Fire; onClose: () => void
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1200] flex justify-center px-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1200] flex justify-center px-2 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-4">
       <section
         className="pointer-events-auto w-full max-w-lg rounded-2xl border border-line bg-surface/97 p-4 shadow-2xl backdrop-blur"
         role="dialog"

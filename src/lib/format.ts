@@ -118,6 +118,11 @@ export function formatFireCount(count: number): string {
   return arabicPlural(count, 'حريق واحد', 'حريقان', 'حرائق', 'حريقاً')
 }
 
+/** «نقطة»، «نقطتان»، «3 نقاط»… */
+export function formatPointCount(count: number): string {
+  return arabicPlural(count, 'نقطة واحدة', 'نقطتان', 'نقاط', 'نقطة')
+}
+
 /** «ولاية»، «ولايتان»، «3 ولايات»… */
 export function formatWilayaCount(count: number): string {
   return arabicPlural(count, 'ولاية واحدة', 'ولايتان', 'ولايات', 'ولاية')

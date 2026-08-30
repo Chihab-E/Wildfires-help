@@ -4,8 +4,9 @@ import { FireDetails } from '../components/FireDetails'
 import { FireList } from '../components/FireList'
 import { StatCards } from '../components/StatCards'
 import { DemoBadge } from '../components/badges'
+import { DevCredit } from '../components/DevCredit'
 import { computeStats, groupByWilaya, sortFires } from '../lib/filters'
-import { formatNumber, formatRelative, formatWilayaCount } from '../lib/format'
+import { formatPointCount, formatRelative, formatWilayaCount } from '../lib/format'
 import { navigateTo } from '../hooks/useHashRoute'
 import type { Fire, FiresPayload } from '../types'
 
@@ -140,13 +141,13 @@ export function HomePage({
         )}
       </section>
 
-      <footer className="mt-6 space-y-1 text-center text-xs text-muted">
+      <footer className="mt-7 space-y-1.5 text-center text-xs text-muted">
         <p>
-          المصدر: {payload?.sourceLabel ?? '—'} {payload?.isDemo && <DemoBadge className="ms-1" />}
+          المصدر: {payload?.isDemo ? <DemoBadge /> : (payload?.sourceLabel ?? '—')}
         </p>
         <p>
-          آخر تحديث: {payload ? formatRelative(payload.updatedAt) : '—'} ·{' '}
-          <span className="num">{formatNumber(stats.satellite)}</span> نقطة رصد فضائي غير مؤكدة
+          آخر تحديث {payload ? formatRelative(payload.updatedAt) : '—'} ·{' '}
+          {formatPointCount(stats.satellite)} رصد فضائي غير مؤكد
         </p>
         <button
           type="button"
@@ -156,6 +157,13 @@ export function HomePage({
         >
           {loading ? 'جارٍ التحديث…' : 'تحديث البيانات'}
         </button>
+
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="font-bold text-body">
+            <span dir="ltr">Algeria Fire</span> · حرائق الجزائر
+          </p>
+          <DevCredit className="mt-1.5" />
+        </div>
       </footer>
 
       {selected && <FireDetails fire={selected} onClose={() => setSelected(null)} />}

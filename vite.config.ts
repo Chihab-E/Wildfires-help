@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon-180.png'],
       manifest: {
-        name: 'حرائق الجزائر — تتبع وإبلاغ',
-        short_name: 'حرائق الجزائر',
+        name: 'Algeria Fire — حرائق الجزائر',
+        short_name: 'Algeria Fire',
         description: 'خريطة تفاعلية لحرائق الغابات في الجزائر مع الإبلاغ ومعلومات الطوارئ',
         lang: 'ar',
         dir: 'rtl',

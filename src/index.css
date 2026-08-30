@@ -4,7 +4,29 @@
 @import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 @theme {
-  --font-sans: 'IBM Plex Sans Arabic', 'Segoe UI', 'Noto Naskh Arabic', system-ui, sans-serif;
+  --font-sans: 'Noto Sans Arabic', 'Segoe UI', 'Noto Naskh Arabic', 'Geeza Pro', system-ui,
+    sans-serif;
+
+  /*
+   * ===== مقياس نصّي معايَر للعربية =====
+   * الحرف العربي يحتاج مساحة أكبر من اللاتيني: النقاط والهمزات فوق السطر
+   * والذيول تحته، ولا توجد حروف كبيرة تكسر الكتلة. المقاسات الافتراضية
+   * لـ Tailwind (مصمّمة للاتينية) تجعل العربية تبدو مزدحمة وصغيرة،
+   * لذلك نرفع كل درجة ونوسّع تباعد الأسطر مرة واحدة هنا
+   * بدل تعديل عشرات الأصناف في المكوّنات.
+   */
+  --text-xs: 0.8125rem; /* 13px بدل 12 */
+  --text-xs--line-height: 1.65;
+  --text-sm: 0.9375rem; /* 15px بدل 14 */
+  --text-sm--line-height: 1.75;
+  --text-base: 1.0625rem; /* 17px بدل 16 */
+  --text-base--line-height: 1.8;
+  --text-lg: 1.1875rem; /* 19px بدل 18 */
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.375rem; /* 22px بدل 20 */
+  --text-xl--line-height: 1.5;
+  --text-2xl: 1.625rem; /* 26px بدل 24 */
+  --text-2xl--line-height: 1.35;
 
   /* ===== الأسطح والنصوص (واجهة فاتحة) ===== */
   --color-canvas: #f4f6f9;
@@ -37,9 +59,22 @@ body {
   background: var(--color-canvas);
   color: var(--color-body);
   font-family: var(--font-sans);
+  /* تباعد أسطر مريح للعربية كأساس، وتتجاوزه أصناف leading-* عند الحاجة */
+  line-height: 1.75;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * العناوين العربية لا تحتاج تباعد أسطر واسعاً، بل العكس:
+ * الأسطر المتباعدة تُفكّك العنوان بصرياً.
+ */
+h1,
+h2,
+h3 {
+  line-height: 1.45;
 }
 
 /*

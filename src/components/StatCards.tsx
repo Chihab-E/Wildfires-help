@@ -1,4 +1,4 @@
-import { formatNumber, formatRelative } from '../lib/format'
+import { formatNumber, formatPointCount, formatRelative } from '../lib/format'
 import type { FireStats } from '../lib/filters'
 
 function Card({
@@ -55,7 +55,7 @@ export function StatCards({ stats, updatedAt }: { stats: FireStats; updatedAt: s
           icon="🕒"
           label="آخر تحديث"
           value={formatRelative(updatedAt)}
-          hint={`${formatNumber(stats.total)} نقطة في المجموع`}
+          hint={`${formatPointCount(stats.total)} مسجّلة`}
           tone="slate"
         />
       </div>

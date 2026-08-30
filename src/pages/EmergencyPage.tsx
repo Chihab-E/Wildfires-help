@@ -1,4 +1,5 @@
 import { EMERGENCY_CONTACTS, SAFETY_GUIDE } from '../data/emergency'
+import { DevCredit } from '../components/DevCredit'
 
 export function EmergencyPage() {
   return (
@@ -93,6 +94,8 @@ export function EmergencyPage() {
         هذه الصفحة للتوعية العامة ولا تُغني عن تعليمات السلطات المحلية. اتبع دائماً توجيهات الحماية
         المدنية وأعوان الغابات في منطقتك.
       </p>
+
+      <DevCredit className="mt-5" />
     </div>
   )
 }

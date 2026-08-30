@@ -34,7 +34,7 @@ export function MapPage({
   const sorted = useMemo(() => sortFires(visible), [visible])
 
   return (
-    <div className="relative h-[calc(100dvh-7.5rem)]">
+    <div className="relative h-[calc(100dvh-8.5rem)]">
       <FireMap
         fires={visible}
         selectedId={selected?.id ?? null}
